@@ -192,16 +192,28 @@ export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions
 /**
  * The vision model, as an OpenRouter model id. Both passes use it.
  *
- * It must accept image input AND support structured outputs, because the
- * pipeline sends `response_format: json_schema` with
- * `provider.require_parameters`. Swapping models is a one-line change here —
- * e.g. "qwen/qwen3.5-flash-02-23".
+ * Nemotron accepts image input and supports tools / tool_choice, but NOT
+ * `response_format`. So the pipeline does not ask for structured outputs — it
+ * forces a single function call per pass and reads the arguments (see
+ * lib/vision/pipeline.ts). Sending `response_format` with
+ * `provider.require_parameters` would be rejected before inference.
+ *
+ * A replacement model must therefore support image input AND forced tool
+ * calling. Swapping is a one-line change here.
  */
-export const MODEL = "qwen/qwen3-vl-32b-instruct";
+export const MODEL = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free";
 export const MAX_TOKENS = 16_000;
 
-/** Transcription is near-deterministic; pass 2 keeps the provider default. */
-export const EXTRACT_TEMPERATURE = 0;
+/**
+ * Names of the single function each pass is forced to call. They are part of
+ * the request AND the response contract: a tool call under any other name is
+ * rejected rather than parsed.
+ */
+export const EXTRACT_TOOL_NAME = "submit_extraction";
+export const CLASSIFY_TOOL_NAME = "submit_classification";
+
+/** Both passes run deterministic — this is extraction and bookkeeping, not prose. */
+export const MODEL_TEMPERATURE = 0;
 
 /**
  * Per-call backstop so a hung upstream fails as `upstream_unreachable` rather

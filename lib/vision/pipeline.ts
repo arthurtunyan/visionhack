@@ -1,19 +1,26 @@
 /**
  * Two-pass vision pipeline, served through OpenRouter's chat completions API.
  *
- * Pass 1 "extract"  — transcribe printed lines verbatim. Near-deterministic,
- *                     so it runs at a low temperature.
+ * Pass 1 "extract"  — transcribe printed lines verbatim.
  * Pass 2 "classify" — categorize, name the variety, size the pack, flag
- *                     perishability. This is where the judgment is, so it runs
- *                     at the model's default temperature.
+ *                     perishability.
  *
  * Splitting them keeps transcription errors from being laundered into
- * confident-looking classifications.
+ * confident-looking classifications. Both run at temperature 0: this is
+ * transcription and bookkeeping, not prose.
  *
- * Both passes ask for structured output (`response_format: json_schema`) built
- * from the Zod schemas in ./schemas, and both re-validate what comes back with
- * the same schema. A provider that ignores the schema, truncates, or wraps the
- * JSON in prose fails here rather than downstream.
+ * HOW THE STRUCTURE IS ENFORCED. The model (Nemotron) accepts images and
+ * supports tools, but NOT `response_format`, so asking for structured outputs
+ * would be rejected before inference. Instead each pass declares exactly one
+ * function, generated from the Zod schema in ./schemas, and forces it with
+ * `tool_choice`. The answer is read from `tool_calls[0].function.arguments`
+ * and validated with that same schema.
+ *
+ * `message.content` is IGNORED on purpose. A reasoning model emits prose next
+ * to its tool call; treating that as data would be trusting the one part of
+ * the response nothing constrains. The only accepted answer is a single,
+ * correctly-named, schema-valid tool call — everything else fails closed as
+ * `unparseable_model_output`.
  *
  * Plain `fetch` on purpose: OpenRouter speaks the OpenAI wire format, and a
  * vendor SDK would buy nothing for two request shapes.
@@ -22,11 +29,13 @@ import * as z from "zod/v4";
 
 import {
   API_KEY_ENV_VAR,
-  EXTRACT_TEMPERATURE,
+  CLASSIFY_TOOL_NAME,
+  EXTRACT_TOOL_NAME,
   MAX_TOKENS,
   MISSING_KEY_MESSAGE,
   MODEL,
   MODEL_REQUEST_TIMEOUT_MS,
+  MODEL_TEMPERATURE,
   OPENROUTER_API_URL,
   OUT_OF_CREDITS_MESSAGE,
   type AllowedMediaType,
@@ -75,10 +84,11 @@ function requireApiKey(): string {
 }
 
 /**
- * OpenRouter JSON-schema output is OpenAI-flavoured strict mode: every property
- * required, no extra properties. Zod v4's `toJSONSchema` already emits both, so
- * the only fixup needed is dropping the `$schema` dialect key, which strict
- * validators reject as an unknown keyword.
+ * A function's `parameters` is a plain JSON Schema. Zod v4's `toJSONSchema`
+ * already emits `required` for every key and `additionalProperties: false`, so
+ * the only fixup needed is dropping the `$schema` dialect key, which some
+ * validators reject as an unknown keyword. One schema, one source of truth —
+ * never a handwritten copy alongside the Zod one.
  */
 function toStrictJsonSchema(schema: z.ZodType): Record<string, unknown> {
   const json = z.toJSONSchema(schema) as Record<string, unknown>;
@@ -94,9 +104,10 @@ interface PassOptions<T> {
   stage: string;
   systemPrompt: string;
   userContent: string | ContentPart[];
-  schemaName: string;
+  /** The one function this pass declares and forces. */
+  toolName: string;
+  toolDescription: string;
   schema: z.ZodType<T>;
-  temperature?: number;
 }
 
 /**
@@ -159,58 +170,51 @@ async function errorDetail(response: Response): Promise<string> {
   }
 }
 
-/** Providers occasionally wrap strict JSON in a markdown fence. Tolerate it. */
-function stripCodeFence(text: string): string {
-  const fenced = text.trim().match(/^```(?:json)?\s*\n([\s\S]*?)\n?```$/i);
-  return fenced ? fenced[1] : text;
-}
-
-/** `message.content` is a string on most providers, content parts on a few. */
-function readContent(content: unknown): string {
-  if (typeof content === "string") return content;
-  if (Array.isArray(content)) {
-    return content
-      .map((part) =>
-        part && typeof part === "object" && typeof (part as { text?: unknown }).text === "string"
-          ? (part as { text: string }).text
-          : "",
-      )
-      .join("");
-  }
-  return "";
+/** A single tool call as OpenRouter relays it. */
+interface ToolCall {
+  function?: { name?: unknown; arguments?: unknown };
 }
 
 /**
- * One structured-output round trip: build the request, map transport and HTTP
- * failures, then validate the model's JSON against the Zod schema before
- * anything downstream sees it.
+ * One forced-tool round trip: build the request, map transport and HTTP
+ * failures, then hold the tool call to the Zod schema before anything
+ * downstream sees it.
  */
 async function runPass<T>({
   stage,
   systemPrompt,
   userContent,
-  schemaName,
+  toolName,
+  toolDescription,
   schema,
-  temperature,
 }: PassOptions<T>): Promise<T> {
   const apiKey = requireApiKey();
 
-  const body: Record<string, unknown> = {
+  const body = {
     model: MODEL,
     max_tokens: MAX_TOKENS,
+    temperature: MODEL_TEMPERATURE,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userContent },
     ],
-    response_format: {
-      type: "json_schema",
-      json_schema: { name: schemaName, strict: true, schema: toStrictJsonSchema(schema) },
-    },
-    // Without this, OpenRouter may route to a provider that silently ignores
-    // response_format and hands back prose.
+    // Exactly one tool, so there is nothing for the model to choose between.
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: toolName,
+          description: toolDescription,
+          parameters: toStrictJsonSchema(schema),
+        },
+      },
+    ],
+    // Forced, not "auto" / "required": the model must call THIS function.
+    tool_choice: { type: "function", function: { name: toolName } },
+    // Keeps OpenRouter from routing to a provider that would drop tool_choice
+    // on the floor and answer with prose instead.
     provider: { require_parameters: true },
   };
-  if (temperature !== undefined) body.temperature = temperature;
 
   let response: Response;
   try {
@@ -238,7 +242,7 @@ async function runPass<T>({
 
   let payload: {
     choices?: {
-      message?: { content?: unknown; refusal?: unknown };
+      message?: { refusal?: unknown; tool_calls?: unknown };
       finish_reason?: string | null;
     }[];
   };
@@ -273,38 +277,51 @@ async function runPass<T>({
     );
   }
 
-  const content = readContent(choice.message?.content).trim();
-  if (content.length === 0) {
-    throw new ScanPipelineError(
+  // From here down everything fails closed as unparseable_model_output.
+  // `message.content` is never consulted: prose is not an answer.
+  const truncated = choice.finish_reason === "length";
+  const unparseable = (why: string) =>
+    new ScanPipelineError(
       "unparseable_model_output",
-      choice.finish_reason === "length"
-        ? `The model hit the ${MAX_TOKENS}-token output limit during ${stage} and returned nothing usable.`
-        : `The model returned empty content during ${stage}.`,
+      truncated
+        ? `The model hit the ${MAX_TOKENS}-token output limit during ${stage}, cutting off its ${toolName} call.`
+        : `${why} during ${stage}.`,
       502,
     );
+
+  const toolCalls = choice.message?.tool_calls;
+  if (!Array.isArray(toolCalls) || toolCalls.length === 0) {
+    throw unparseable(`The model did not call ${toolName}`);
+  }
+  // Exactly one call, under exactly the expected name. Anything else — a second
+  // call, a different function — means we cannot tell which answer was meant.
+  if (toolCalls.length > 1) {
+    throw unparseable(`The model returned ${toolCalls.length} tool calls instead of one`);
+  }
+  const call = toolCalls[0] as ToolCall;
+  if (call?.function?.name !== toolName) {
+    throw unparseable(`The model called an unexpected function instead of ${toolName}`);
   }
 
-  // Never trust the model's JSON: parse it, then hold it to the schema.
+  // `arguments` is a JSON string per the OpenAI wire format; a few providers
+  // send the object itself. Both go through Zod below, so neither is trusted.
+  const rawArguments = call.function?.arguments;
   let parsed: unknown;
-  try {
-    parsed = JSON.parse(stripCodeFence(content));
-  } catch {
-    throw new ScanPipelineError(
-      "unparseable_model_output",
-      choice.finish_reason === "length"
-        ? `The model hit the ${MAX_TOKENS}-token output limit during ${stage}, truncating its JSON.`
-        : `The model returned output that was not valid JSON during ${stage}.`,
-      502,
-    );
+  if (typeof rawArguments === "string") {
+    try {
+      parsed = JSON.parse(rawArguments);
+    } catch {
+      throw unparseable(`The ${toolName} arguments were not valid JSON`);
+    }
+  } else if (rawArguments !== null && typeof rawArguments === "object") {
+    parsed = rawArguments;
+  } else {
+    throw unparseable(`The ${toolName} call carried no arguments`);
   }
 
   const result = schema.safeParse(parsed);
   if (!result.success) {
-    throw new ScanPipelineError(
-      "unparseable_model_output",
-      `The model returned output that did not match the expected schema during ${stage}.`,
-      502,
-    );
+    throw unparseable(`The ${toolName} arguments did not match the expected schema`);
   }
   return result.data;
 }
@@ -322,10 +339,10 @@ export async function extractRawLines(
       { type: "image_url", image_url: { url: `data:${mediaType};base64,${imageBase64}` } },
       { type: "text", text: "Transcribe every printed product line in this image." },
     ],
-    schemaName: "raw_extraction",
+    toolName: EXTRACT_TOOL_NAME,
+    toolDescription:
+      "Submit every printed product line transcribed verbatim from the image.",
     schema: RawExtractionSchema,
-    // Transcription needs accuracy, not creativity.
-    temperature: EXTRACT_TEMPERATURE,
   });
 }
 
@@ -341,8 +358,9 @@ export async function classifyLines(raw: RawExtraction): Promise<Classification>
       null,
       2,
     )}`,
-    schemaName: "classification",
+    toolName: CLASSIFY_TOOL_NAME,
+    toolDescription:
+      "Submit one classified item for each transcribed invoice line, in order.",
     schema: ClassificationSchema,
-    // Default temperature — this is where the judgment lives.
   });
 }

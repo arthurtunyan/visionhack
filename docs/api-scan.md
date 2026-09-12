@@ -179,20 +179,38 @@ confident-looking classifications.
 Both passes go to **OpenRouter**'s OpenAI-compatible
 `POST https://openrouter.ai/api/v1/chat/completions` over plain `fetch` — no
 vendor SDK. The model id lives in one constant (`MODEL`, currently
-`qwen/qwen3-vl-32b-instruct`) so swapping it is a one-line change.
+`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`) so swapping it is a
+one-line change.
 
 Pass 1 sends the image as an `image_url` content part holding a
 `data:<mediaType>;base64,...` URL, placed before the text part.
 
-Both passes request `response_format: { type: "json_schema", json_schema: {
-name, strict: true, schema } }`, where `schema` is generated from the Zod
-schemas in `lib/vision/schemas.ts` via `z.toJSONSchema`. `provider: {
-require_parameters: true }` keeps OpenRouter from routing to a provider that
-would silently ignore `response_format`.
+**Structure comes from forced tool calling, not `response_format`.** Nemotron
+accepts images and supports `tools` / `tool_choice`, but does **not** support
+`response_format` — sending it alongside `provider.require_parameters` gets the
+request rejected before inference. So each pass instead declares exactly one
+function and forces it:
 
-The model's JSON is **not** trusted: it is parsed and then re-validated with the
-same Zod schema. Anything that does not match is a `502
-unparseable_model_output`, never a partially-filled scorecard.
+| Pass | Function | Parameters from |
+|---|---|---|
+| extract | `submit_extraction` | `RawExtractionSchema` |
+| classify | `submit_classification` | `ClassificationSchema` |
+
+The `parameters` schema is generated from those Zod schemas with
+`z.toJSONSchema` (the `$schema` dialect key is stripped) — there is no
+handwritten second copy to drift. The call is forced with
+`tool_choice: { type: "function", function: { name } }`, and
+`provider: { require_parameters: true }` keeps OpenRouter from routing to a
+provider that would ignore `tool_choice` and answer with prose.
+
+The reply is read from `choices[0].message.tool_calls`: exactly one call, under
+exactly the expected name, whose `function.arguments` parses as JSON and passes
+that same Zod schema. **`message.content` is ignored entirely** — a reasoning
+model emits prose next to its tool call, and that prose is the one part of the
+response nothing constrains.
+
+Missing, duplicate, wrong-name, malformed or off-schema tool calls all fail
+closed as `502 unparseable_model_output`, never a partially-filled scorecard.
 
 Tunables (the four scoring rules, confidence threshold, pack math, size cap,
 CORS origins, model) all live in

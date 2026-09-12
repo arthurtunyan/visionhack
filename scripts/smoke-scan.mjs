@@ -4,6 +4,7 @@
  *   npm run smoke                                  local server, full check
  *   npm run smoke -- ./path/to/invoice.jpg         local, custom image
  *   npm run smoke -- --url https://app.vercel.app  hit a deployed URL
+ *   npm run smoke -- --runs 3                      repeat the live scan 3x
  *
  * Local runs boot the production build, exercise the CORS preflight and every
  * request guard, then — only if OPENROUTER_API_KEY is present — run the real
@@ -24,8 +25,12 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 let remoteUrl = null;
 let imagePath = resolve(root, "fixtures/sample-invoice.png");
+// Forced tool calling either works every time or it doesn't. --runs N repeats
+// the live scan so a one-off success isn't mistaken for reliability.
+let runs = 1;
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === "--url") remoteUrl = argv[++i];
+  else if (argv[i] === "--runs") runs = Math.max(1, Number(argv[++i]) || 1);
   else if (!argv[i].startsWith("--")) imagePath = resolve(process.cwd(), argv[i]);
 }
 
@@ -97,15 +102,43 @@ async function runScan(base) {
         body.scorecardEs?.totalUnits === body.scorecard?.totalUnits &&
         body.scorecardEs?.fixes?.length === body.scorecard?.fixes?.length,
     );
+    check(
+      "meta.model is the configured model",
+      typeof body.meta?.model === "string" && body.meta.model.length > 0,
+      body.meta?.model,
+    );
+    summarize(body);
   }
   return body;
+}
+
+/** The hand-off summary: counts, reasons, varieties, verdict, timings. */
+function summarize(body) {
+  console.log("\n  --- summary ---");
+  console.log(`  model:         ${body.meta?.model}`);
+  console.log(`  items:         ${body.items?.length}`);
+  console.log(`  excluded:      ${body.excluded?.length}`);
+  for (const e of body.excluded ?? []) {
+    console.log(`                 - ${e.description}: ${e.reason}`);
+  }
+  console.log(`  varietyCounts: ${JSON.stringify(body.varietyCounts)}`);
+  console.log(`  overallStatus: ${body.scorecard?.overallStatus}`);
+  console.log(`  timingMs:      ${JSON.stringify(body.meta?.timingMs)}`);
+}
+
+/** Run the live scan `runs` times; every run must pass. */
+async function runScanRepeatedly(base) {
+  for (let i = 1; i <= runs; i++) {
+    if (runs > 1) console.log(`\n  --- run ${i} of ${runs} ---`);
+    await runScan(base);
+  }
 }
 
 // --- remote mode ------------------------------------------------------------
 if (remoteUrl) {
   section(`Deployed scan: ${remoteUrl}`);
   console.log(`  image: ${imagePath}`);
-  await runScan(remoteUrl.replace(/\/$/, ""));
+  await runScanRepeatedly(remoteUrl.replace(/\/$/, ""));
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed === 0 ? 0 : 1);
 }
@@ -223,10 +256,10 @@ try {
     console.log("  SKIPPED — OPENROUTER_API_KEY is not set in this environment.");
     console.log("  This is the ONLY check that the model call actually works.");
     console.log("  Whoever holds the key should run:");
-    console.log("    npm run build && OPENROUTER_API_KEY=... npm run smoke");
+    console.log("    npm run build && OPENROUTER_API_KEY=... npm run smoke -- --runs 3");
   } else {
     console.log(`  image: ${imagePath}`);
-    await runScan(BASE);
+    await runScanRepeatedly(BASE);
   }
 } finally {
   try {
