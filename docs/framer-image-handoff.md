@@ -2,11 +2,24 @@
 
 **For: Michael**
 **Site:** https://dark-role-914680.framer.app/
-**Source of files:** Adrian (rendered from the live app)
+**Files:** `brand/site/` in this repo — all 13 are committed.
 
 Every image is **already cropped to its slot's aspect ratio**. Don't re-crop
 anything — if a slot looks wrong after dropping, the fix is the layer's fit
 setting, not the file.
+
+> **These are designed mockups, not screenshots of a running app.** The repo
+> ships an API only — there is no live UI to capture — so the dashboard and step
+> images are built from the Ledger brand system to show what the product does.
+> They're honest about the product's behaviour, but don't describe them to anyone
+> as captures of real software.
+>
+> Regenerate any of them with:
+> ```bash
+> python3 brand/tools/build-site-images.py        # all
+> python3 brand/tools/build-site-images.py 01 05  # just these
+> ```
+> The PNGs are derived — edit the templates in that script, never the images.
 
 ---
 
@@ -71,7 +84,10 @@ file in the slot.
 | # | File | Where | Size |
 |---|---|---|---|
 | 9 | `09-og-image.png` | Site Settings → General → **Social image** | 1200×630 |
-| 12 | `12-favicon-512.png` | Site Settings → General → **Favicon** | 512×512 |
+| 12 | `12-favicon-512.png` *or* `12-favicon-512-mark.png` | Site Settings → General → **Favicon** | 512×512 |
+
+**Two favicons ship — pick one.** See the note below; the short version is that
+`-mark` is the one that's legible in a browser tab.
 
 For these: **Site Settings** (gear icon) → **General**, then the Social image and
 Favicon fields. They do not appear in the Layers panel.
@@ -104,17 +120,20 @@ Favicon fields. They do not appear in the Layers panel.
 These are genuine conflicts with the brand kit already merged to `main`, not
 nitpicks. Worth a 30-second decision rather than silently overwriting.
 
-**#12 favicon.** The spec for this file describes *"a black rounded square with a
-white 'l'"*. That is **not** the Ledger mark. The merged brand kit's favicon is
-the bracket mark — blue brackets `#1B4DFF` closing on rows — at
-`brand/logo/favicon.svg` and `brand/icons/favicon.ico`, with a two-row cut
-specifically so it survives 16px.
+**#12 favicon — recommend the `-mark` version.** The spec asked for *"a black
+rounded square with a white 'l'"*. Both were built, and both were checked at
+actual favicon size:
 
-Two different favicons will ship if nobody decides. Either:
-- use `brand/icons/favicon.ico` / `brand/logo/favicon.svg` (keeps the site
-  consistent with the brand kit), or
-- use `12-favicon-512.png` and accept that the site's favicon and the brand kit
-  disagree.
+- `12-favicon-512.png` (as specified) — Archivo's lowercase *l* is an
+  undecorated stem, so at 16px it renders as a plain vertical bar,
+  indistinguishable from a text cursor. It carries no brand information.
+- `12-favicon-512-mark.png` — the Ledger bracket mark using the brand kit's
+  **two-row small cut**, which exists precisely because three rows mush together
+  below 32px. Legible at 32px, still a distinct shape at 16px, and consistent
+  with `brand/logo/favicon.svg` and `brand/icons/favicon.ico`.
+
+Either works mechanically. The `-mark` one is the one people will actually
+recognise in a tab.
 
 **#9 social image.** The brand kit already ships
 `brand/social/og-image-1200x630.png` — same purpose, same dimensions. Pick one.
