@@ -5,7 +5,8 @@ classified line items with the scoring rules already applied, plus a
 qualifying-variety count per category.
 
 It also returns `scorecard`: Role C's pass/fail `ScanResult`, built from the
-counted items. See [The C boundary](#the-c-boundary) below.
+counted items, and `scorecardEs`, the same scorecard in Spanish. See
+[The C boundary](#the-c-boundary) below.
 
 The route is CORS-enabled and handles the `OPTIONS` preflight, because the
 frontend is hosted on Framer (a different origin).
@@ -34,6 +35,7 @@ if (data.ok) {
   data.excluded;      // show as "couldn't read these"
   data.varietyCounts; // { dairy, grains, protein, produce }
   data.scorecard;     // ScanResult: pass/fail, 4 category cards, fix list
+  data.scorecardEs;   // the same ScanResult with Spanish labels and fix text
 } else {
   data.error.message; // safe to display
 }
@@ -62,6 +64,7 @@ interface ScanSuccess {
   excluded: ExcludedItem[]; // NOT counted — show as "couldn't read these"
   varietyCounts: VarietyCountsByCategory; // qualifying varieties, floored
   scorecard: ScanResult;    // C's pass/fail scorecard, shape in lib/mock-data.ts
+  scorecardEs: ScanResult;  // same numbers, Spanish labels and fix text
   meta: ScanMeta;
 }
 
@@ -127,6 +130,15 @@ The engine reuses the rules in `lib/rules/constants.ts`, so each
 category, and a test asserts it. On top of that it applies the pass rule (7
 varieties in every category, perishables in 3 of 4) and builds the fix list.
 `storeName` is optional; without it the scorecard's `storeName` is empty.
+
+`scorecardEs` is built from the same items at the same moment, so only the
+words differ: category labels, `itemSuggestion` and `whyItHelps`. Item names
+and varieties stay as printed. Pick one or the other on the client when the
+language changes; there's no need to scan again. Spanish labels for the rest of
+the screens are in [spanish-strings.md](spanish-strings.md).
+
+`scanDate` is the date in Los Angeles (`YYYY-MM-DD`), not the server's UTC
+date, so an evening scan doesn't show tomorrow.
 
 ### The rule that matters
 

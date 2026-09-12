@@ -20,8 +20,10 @@ const require = createRequire(import.meta.url);
 const { buildScanResult } = require(resolve(root, ".smoke-build/rule-engine.js"));
 const { partitionClassifiedItems } = require(resolve(root, ".smoke-build/rules/partition.js"));
 const { MOCK_RESULT } = require(resolve(root, ".smoke-build/mock-data.js"));
+const { SUGGESTIONS } = require(resolve(root, ".smoke-build/scorecard-copy.js"));
 
-const SCAN_DATE = new Date(2026, 8, 12, 23, 30); // local time, late evening
+// 9:30 pm on Sep 12 in Los Angeles, already Sep 13 in UTC (where Vercel runs).
+const SCAN_DATE = new Date("2026-09-13T04:30:00Z");
 
 /** Seven realistic varieties per category. */
 const STAPLES = {
@@ -341,4 +343,82 @@ test("no items gives an all-zero failing scorecard", () => {
   assert.equal(result.totalUnits, 0);
   assert.equal(result.categories.length, 4);
   assert.equal(result.fixes.length, 8);
+});
+
+// ---------------------------------------------------------------------------
+test("scanDate is the Los Angeles date, not the server's UTC date", () => {
+  assert.equal(buildScanResult([], "Test Store", SCAN_DATE).scanDate, "2026-09-12");
+  // 1 am the next morning in Los Angeles.
+  assert.equal(buildScanResult([], "Test Store", new Date("2026-09-13T08:00:00Z")).scanDate, "2026-09-13");
+});
+
+// ---------------------------------------------------------------------------
+test("the Spanish scorecard has the same numbers, with Spanish labels and fixes", () => {
+  // The sample produce invoice again: a near-miss top-up plus new-item fixes.
+  const produce = (text, variety, cases) => line("produce", [text, variety, "fresh"], cases);
+  const { items } = partitionClassifiedItems([
+    produce("Cooking Onion 16 / 3 #", "onions", 4),
+    produce("Tomato 4x4", "tomatoes", 5),
+    produce("Select Cucumber bushel", "cucumbers", 2),
+    produce("Lettuce, Head 24 ct Cello Wrap", "lettuce", 8),
+  ]);
+  const en = buildScanResult(items, "Tienda Rivera", SCAN_DATE);
+  const es = buildScanResult(items, "Tienda Rivera", SCAN_DATE, "es");
+
+  // Everything but the words is identical.
+  const numbers = ({ categories, fixes, ...rest }) => ({
+    ...rest,
+    categories: categories.map((c) => ({ ...c, label: "" })),
+    fixes: fixes.map((f) => f.category),
+  });
+  assert.deepEqual(numbers(es), numbers(en));
+
+  assert.deepEqual(
+    es.categories.map((c) => c.label),
+    ["Lácteos", "Granos", "Proteínas", "Frutas y verduras"],
+  );
+
+  const [topUp] = es.fixes.filter((f) => f.category === "produce");
+  assert.equal(topUp.itemSuggestion, "Select Cucumber bushel (surta 1 más)");
+  assert.equal(
+    topUp.whyItHelps,
+    "Ya tiene 2 unidades de cucumbers; con 1 más cumple el mínimo de 3 unidades y lleva las frutas y verduras a 4 de 7 variedades.",
+  );
+
+  const [firstDairy] = es.fixes.filter((f) => f.category === "dairy");
+  assert.equal(firstDairy.itemSuggestion, "Queso cottage Daisy, 16 oz (surta 3)");
+  assert.equal(
+    firstDairy.whyItHelps,
+    "Un básico refrigerado de bajo costo. Surtir 3 lleva los lácteos a 1 de 7 variedades y agrega el producto perecedero que les falta a los lácteos.",
+  );
+
+  // No English template text leaks into Spanish fixes.
+  for (const fix of es.fixes) {
+    assert.doesNotMatch(`${fix.itemSuggestion} ${fix.whyItHelps}`, /\b(stock|brings|gives|varieties|units?|already)\b/i);
+  }
+});
+
+test("a Spanish store that only misses the perishable rule gets Spanish fixes", () => {
+  const shelfStable = (c) => stock(c).map((l) => ({ ...l, storage: "shelf_stable" }));
+  const { items } = partitionClassifiedItems([
+    ...shelfStable("dairy"),
+    ...shelfStable("grains"),
+    ...shelfStable("protein"),
+    ...stock("produce"),
+  ]);
+  const es = buildScanResult(items, "Test Store", SCAN_DATE, "es");
+
+  assert.deepEqual(es.fixes.map((f) => f.category), ["dairy", "grains", "protein"]);
+  assert.match(es.fixes[0].whyItHelps, /le da a los lácteos un producto perecedero, necesario en 3 de 4 categorías\.$/);
+});
+
+test("every fix suggestion has its own Spanish text", () => {
+  for (const [category, suggestions] of Object.entries(SUGGESTIONS)) {
+    for (const s of suggestions) {
+      assert.ok(s.es.itemSuggestion && s.es.pitch, `${category} ${s.variety} is missing Spanish`);
+      assert.notEqual(s.es.itemSuggestion, s.en.itemSuggestion, `${category} ${s.variety}`);
+      assert.notEqual(s.es.pitch, s.en.pitch, `${category} ${s.variety}`);
+      assert.match(s.es.itemSuggestion, /\(surta 3\)$/, `${category} ${s.variety}`);
+    }
+  }
 });

@@ -8,6 +8,8 @@
  * from lib/rules/constants.ts rather than being re-implemented here, so the
  * scorecard can never disagree with the `varietyCounts` the route returns next
  * to it. When unsure, undercount.
+ *
+ * Labels and fix text come from lib/scorecard-copy.ts, in English or Spanish.
  */
 import type { CategoryStatus, ScanResult } from "./mock-data";
 import {
@@ -18,6 +20,7 @@ import {
   varietyQualifies,
   type Category,
 } from "./rules/constants";
+import { SCORECARD_COPY, SUGGESTIONS, type Locale, type Suggestion } from "./scorecard-copy";
 import type { ScanItem } from "./types";
 
 type CountedItem = CategoryStatus["items"][number];
@@ -38,12 +41,11 @@ export const REQUIRED_PERISHABLE_CATEGORIES = 3;
 
 const MAX_FIXES_PER_CATEGORY = 2;
 
-export const CATEGORY_LABELS: Record<Category, string> = {
-  dairy: "Dairy",
-  grains: "Grains",
-  protein: "Protein",
-  produce: "Fruits and Vegetables",
-};
+/**
+ * `scanDate` is the calendar date here, not on the server. Vercel runs in UTC,
+ * so an evening scan in Los Angeles would otherwise show tomorrow's date.
+ */
+export const SCAN_DATE_TIME_ZONE = "America/Los_Angeles";
 
 // ---------------------------------------------------------------------------
 // Scoring
@@ -80,7 +82,7 @@ interface CategoryScore {
   nearMisses: NearMiss[];
 }
 
-function scoreCategory(category: Category, items: CountedItem[]): CategoryScore {
+function scoreCategory(category: Category, items: CountedItem[], locale: Locale): CategoryScore {
   const byVariety = new Map<string, CountedItem[]>();
   for (const item of items) {
     const key = varietyKey(item.variety);
@@ -107,7 +109,7 @@ function scoreCategory(category: Category, items: CountedItem[]): CategoryScore 
   return {
     status: {
       category,
-      label: CATEGORY_LABELS[category],
+      label: SCORECARD_COPY[locale].categoryLabels[category],
       varietiesFound,
       unitsFound: sumUnits(counted),
       hasPerishable: counted.some((item) => item.perishable),
@@ -121,13 +123,14 @@ function scoreCategory(category: Category, items: CountedItem[]): CategoryScore 
  * Builds the scorecard from `ScanSuccess.items`. Never pass `excluded` lines:
  * they were dropped precisely because they must not count.
  *
- * `now` is injectable for tests. The date is formatted in the server's local
- * time zone, which is UTC on Vercel.
+ * `now` is injectable for tests. `locale` only changes labels and fix text;
+ * the numbers, items and fix order are the same in every language.
  */
 export function buildScanResult(
   items: ScanItem[],
   storeName: string,
   now: Date = new Date(),
+  locale: Locale = "en",
 ): ScanResult {
   const byCategory = new Map<Category, CountedItem[]>(CATEGORIES.map((c) => [c, []]));
   for (const item of items) {
@@ -143,7 +146,9 @@ export function buildScanResult(
     });
   }
 
-  const scores = CATEGORIES.map((category) => scoreCategory(category, byCategory.get(category) ?? []));
+  const scores = CATEGORIES.map((category) =>
+    scoreCategory(category, byCategory.get(category) ?? [], locale),
+  );
   const categories = scores.map((score) => score.status);
   const totalUnits = categories.reduce((sum, c) => sum + c.unitsFound, 0);
   const perishableCategoriesMet = categories.filter((c) => c.hasPerishable).length;
@@ -164,60 +169,25 @@ export function buildScanResult(
     totalUnits,
     perishableCategoriesMet,
     categories,
-    fixes: scores.flatMap((score) => categoryFixes(score, perishableCategoriesMet)),
+    fixes: scores.flatMap((score) => categoryFixes(score, perishableCategoriesMet, locale)),
   };
 }
 
+/** YYYY-MM-DD in SCAN_DATE_TIME_ZONE. Built from parts so no locale's date format can leak in. */
 function formatDate(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: SCAN_DATE_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 // ---------------------------------------------------------------------------
 // Fix list
 // ---------------------------------------------------------------------------
-interface Suggestion {
-  itemSuggestion: string;
-  variety: string;
-  perishable: boolean;
-  pitch: string;
-}
-
-/**
- * Common, low-cost staples a corner store can add. Shelf-stable options come
- * first so perishables are only suggested when the category needs one.
- */
-const SUGGESTIONS: Record<Category, Suggestion[]> = {
-  dairy: [
-    { itemSuggestion: "Carnation Evaporated Milk, 12 oz can (stock 3)", variety: "evaporated milk", perishable: false, pitch: "Shelf-stable, no fridge space needed." },
-    { itemSuggestion: "Nido Fortificada Dry Milk, 12.6 oz (stock 3)", variety: "powdered milk", perishable: false, pitch: "Shelf-stable and a steady seller with families." },
-    { itemSuggestion: "Daisy Cottage Cheese, 16 oz (stock 3)", variety: "cottage cheese", perishable: true, pitch: "A low-cost refrigerated staple." },
-    { itemSuggestion: "Kraft Singles American Cheese, 12 ct (stock 3)", variety: "american cheese", perishable: true, pitch: "Sliced cheese sells alongside bread and lunch meat." },
-    { itemSuggestion: "Galbani Mozzarella String Cheese, 12 ct (stock 3)", variety: "mozzarella cheese", perishable: true, pitch: "A grab-and-go refrigerated snack." },
-  ],
-  grains: [
-    { itemSuggestion: "Mission Corn Tortillas, 30 ct (stock 3)", variety: "corn tortillas", perishable: false, pitch: "A daily staple that sells fast." },
-    { itemSuggestion: "Maseca Instant Corn Masa Flour, 4.4 lb (stock 3)", variety: "corn masa flour", perishable: false, pitch: "Shelf-stable and a staple for home cooks." },
-    { itemSuggestion: "Premium Original Saltine Crackers, 16 oz (stock 3)", variety: "saltine crackers", perishable: false, pitch: "Shelf-stable and cheap." },
-    { itemSuggestion: "Bimbo Soft White Bread, 20 oz (stock 3)", variety: "white bread", perishable: true, pitch: "Fresh bread is perishable and sells every day." },
-    { itemSuggestion: "Fresh Bolillo Rolls, 6 ct (stock 3)", variety: "bolillo rolls", perishable: true, pitch: "Fresh bakery rolls are perishable and sell daily." },
-  ],
-  protein: [
-    { itemSuggestion: "Bumble Bee Pink Salmon, 14.75 oz can (stock 3)", variety: "canned salmon", perishable: false, pitch: "Shelf-stable, no fridge space needed." },
-    { itemSuggestion: "Libby's Vienna Sausage, 4.6 oz can (stock 3)", variety: "vienna sausage", perishable: false, pitch: "Cheap, shelf-stable and a quick seller." },
-    { itemSuggestion: "Fresh Chicken Drumsticks, family pack (stock 3)", variety: "chicken", perishable: true, pitch: "A low-cost fresh meat families buy often." },
-    { itemSuggestion: "Cacique Pork Chorizo, 9 oz (stock 3)", variety: "chorizo", perishable: true, pitch: "A refrigerated staple for breakfast and tacos." },
-    { itemSuggestion: "Jennie-O Ground Turkey, 1 lb (stock 3)", variety: "ground turkey", perishable: true, pitch: "Refrigerated and priced close to ground beef." },
-  ],
-  produce: [
-    { itemSuggestion: "Del Monte Cut Green Beans, 14.5 oz can (stock 3)", variety: "green beans", perishable: false, pitch: "Canned vegetables count and keep for months." },
-    { itemSuggestion: "Dole Pineapple Chunks, 20 oz can (stock 3)", variety: "pineapple", perishable: false, pitch: "Canned fruit counts and keeps for months." },
-    { itemSuggestion: "Bananas, per lb (stock 3)", variety: "bananas", perishable: true, pitch: "The cheapest fresh fruit and a daily seller." },
-    { itemSuggestion: "Fresh Limes, per lb (stock 3)", variety: "limes", perishable: true, pitch: "Cheap, fresh and they sell with almost everything." },
-    { itemSuggestion: "Carrots, 2 lb bag (stock 3)", variety: "carrots", perishable: true, pitch: "Fresh, cheap and they keep for weeks in the cooler." },
-  ],
-};
-
 /**
  * Looser than varietyKey, and used only to avoid suggesting something the
  * store already carries: "canned salmon" vs "salmon", "tomatoes" vs "tomato".
@@ -228,14 +198,15 @@ function looseVarietyKey(variety: string): string {
     .replace(/(?<=o)es$|s$/, "");
 }
 
-function plural(count: number, word: string): string {
-  return `${count} ${word}${count === 1 ? "" : "s"}`;
-}
-
 type Pick = { kind: "top-up"; nearMiss: NearMiss } | { kind: "new"; suggestion: Suggestion };
 
-function categoryFixes({ status, nearMisses }: CategoryScore, perishableCategoriesMet: number): Fix[] {
+function categoryFixes(
+  { status, nearMisses }: CategoryScore,
+  perishableCategoriesMet: number,
+  locale: Locale,
+): Fix[] {
   const { category } = status;
+  const copy = SCORECARD_COPY[locale];
   const varietiesShort = REQUIRED_VARIETIES_PER_CATEGORY - status.varietiesFound;
   const perishableShort =
     !status.hasPerishable && perishableCategoriesMet < REQUIRED_PERISHABLE_CATEGORIES;
@@ -264,10 +235,10 @@ function categoryFixes({ status, nearMisses }: CategoryScore, perishableCategori
   return picks.slice(0, fixCount).map((pick, i) => {
     let gain =
       varietiesShort > 0
-        ? `brings ${category} to ${status.varietiesFound + i + 1} of ${REQUIRED_VARIETIES_PER_CATEGORY} varieties`
-        : `gives ${category} a perishable item, needed in ${REQUIRED_PERISHABLE_CATEGORIES} of ${CATEGORIES.length} categories`;
+        ? copy.varietyGain(category, status.varietiesFound + i + 1, REQUIRED_VARIETIES_PER_CATEGORY)
+        : copy.perishableGain(category, REQUIRED_PERISHABLE_CATEGORIES, CATEGORIES.length);
     if (varietiesShort > 0 && perishableShort && i === 0) {
-      gain += ` and adds the perishable item ${category} is missing`;
+      gain += copy.addsMissingPerishable(category);
     }
 
     if (pick.kind === "top-up") {
@@ -275,14 +246,15 @@ function categoryFixes({ status, nearMisses }: CategoryScore, perishableCategori
       const more = MIN_STOCKING_UNITS_PER_VARIETY - units;
       return {
         category,
-        itemSuggestion: `${name} (stock ${more} more)`,
-        whyItHelps: `You already stock ${plural(units, "unit")} of ${variety.toLowerCase()}; ${more} more meets the ${MIN_STOCKING_UNITS_PER_VARIETY}-unit minimum and ${gain}.`,
+        itemSuggestion: copy.topUpSuggestion(name, more),
+        whyItHelps: copy.topUpReason(units, variety.toLowerCase(), more, MIN_STOCKING_UNITS_PER_VARIETY, gain),
       };
     }
+    const text = pick.suggestion[locale];
     return {
       category,
-      itemSuggestion: pick.suggestion.itemSuggestion,
-      whyItHelps: `${pick.suggestion.pitch} Stocking ${MIN_STOCKING_UNITS_PER_VARIETY} ${gain}.`,
+      itemSuggestion: text.itemSuggestion,
+      whyItHelps: copy.newItemReason(text.pitch, MIN_STOCKING_UNITS_PER_VARIETY, gain),
     };
   });
 }
