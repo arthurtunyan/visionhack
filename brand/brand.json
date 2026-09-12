@@ -1,0 +1,74 @@
+{
+  "name": "Ledger",
+  "wordmark": "ledger",
+  "description": "Photograph an invoice. Know in seconds if a store is actually stocked.",
+  "concept": "Brackets closing on three stock rows. The brackets bound and verify; the rows are what was counted. The animated cut plays the same idea in sequence: the brackets close (scan), then the rows grow left to right (count).",
+  "palette": {
+    "ink": "#000000",
+    "paper": "#FFFFFF",
+    "note": "Ledger is MONOCHROME BY DESIGN. There is no accent colour and none may be introduced. If a design seems to need one, the answer is contrast, weight, or space — not colour. The only tonal value in the system is the 38% opacity on the middle row of the mark, which is part of the mark and must not be restyled."
+  },
+  "typography": {
+    "wordmark": "Archivo SemiBold (600), SIL Open Font License",
+    "tracking": "-38/1000 em",
+    "outlines": "The wordmark ships as outlines in logo/wordmark.path and is embedded as a <path> in the lockups, so it never depends on a font being installed. Do not re-typeset it in live text.",
+    "ui": "For supporting text, Archivo where available, otherwise a system sans stack."
+  },
+  "files": {
+    "logo": "brand/logo/ledger-lockup.svg",
+    "logo_on_dark": "brand/logo/ledger-lockup-inverse.svg",
+    "logo_animated": "brand/logo/ledger-lockup-animated.svg",
+    "mark": "brand/logo/ledger-mark.svg",
+    "mark_on_dark": "brand/logo/ledger-mark-inverse.svg",
+    "mark_animated": "brand/logo/ledger-mark-animated.svg",
+    "favicon_svg": "brand/logo/favicon.svg",
+    "favicon_svg_on_dark": "brand/logo/favicon-inverse.svg",
+    "favicon_ico": "brand/icons/favicon.ico",
+    "wordmark_path": "brand/logo/wordmark.path",
+    "icon_16": "brand/icons/icon-16.png",
+    "icon_32": "brand/icons/icon-32.png",
+    "icon_48": "brand/icons/icon-48.png",
+    "icon_64": "brand/icons/icon-64.png",
+    "icon_180": "brand/icons/icon-180.png",
+    "icon_192": "brand/icons/icon-192.png",
+    "icon_512": "brand/icons/icon-512.png",
+    "icon_master": "brand/icons/icon-master-1024.png",
+    "apple_touch_icon": "brand/icons/apple-touch-icon-180.png",
+    "github_avatar": "brand/social/avatar-512.png",
+    "social_preview": "brand/social/social-preview-1280x640.png",
+    "og_image": "brand/social/og-image-1200x630.png",
+    "readme_banner": "brand/social/readme-banner-1600x400.png"
+  },
+  "usage": {
+    "default": "Use the lockup (mark + wordmark) wherever there is room. Use the bare mark only where the name is already present or space is tight.",
+    "on_dark": "Switch to the -inverse files. Never recolour the standard files by hand.",
+    "loading": "Use mark_animated as a scanning / working state while a scan is in flight. It loops on a 3s cycle and respects prefers-reduced-motion.",
+    "browser_tab": "favicon_svg plus favicon_ico. Sizes 16 and 32 use a two-row cut of the mark because three rows blur together below 32px.",
+    "ios": "apple_touch_icon (180px).",
+    "pwa": "icon_192 and icon_512.",
+    "github_avatar": "github_avatar (512px).",
+    "github_social_preview": "social_preview (1280x640), set in repository settings.",
+    "open_graph": "og_image (1200x630).",
+    "readme": "readme_banner at the top of a README. Use a STATIC file there — GitHub strips SVG styling, so an animated SVG will not animate in a README.",
+    "animation_support": "The animated SVGs loop anywhere real CSS runs (Vercel, Framer, any browser). They do NOT animate inside a GitHub README."
+  },
+  "rules": [
+    "Monochrome only: black #000000 on white #FFFFFF. Never introduce an accent colour.",
+    "Never stretch, skew, rotate, or otherwise distort the mark or lockup. Scale proportionally.",
+    "Never recolour, add gradients, shadows, glows, or outlines.",
+    "Never re-typeset the wordmark in live text — always use the outlined path.",
+    "Never rearrange the lockup: the mark sits left of the word, at the spacing defined in build-brand.py.",
+    "Clear space on all sides is at least one bracket height (36 units at the mark's 64-unit viewBox, i.e. 56% of the mark's height).",
+    "Minimum sizes: 16px using the favicon cut, 32px for the three-row mark, 120px for the full lockup.",
+    "Below 32px always use the two-row favicon cut — the three-row mark turns to mush.",
+    "SVGs are the source of truth; PNGs are derived. Never hand-edit either — change the geometry and re-run the build.",
+    "The 38% opacity on the mark's middle row is part of the mark, not a styling choice."
+  ],
+  "regenerate": {
+    "wordmark": "python3 brand/tools/extract-wordmark.py",
+    "everything": "python3 brand/tools/build-brand.py",
+    "svg_only": "python3 brand/tools/build-brand.py --svg-only",
+    "requirements": "Wordmark extraction needs network access and fonttools. The main build needs nothing to write SVGs; PNG output additionally needs headless Chromium and Pillow, and degrades gracefully without them.",
+    "note": "wordmark.path is committed, so the normal build never touches the network."
+  }
+}
