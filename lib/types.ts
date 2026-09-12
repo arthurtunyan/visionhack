@@ -1,0 +1,98 @@
+/**
+ * Public response contract for POST /api/scan.
+ *
+ * Role A (frontend) and Role C (rule engine) should import from this file
+ * rather than re-deriving shapes. Nothing here depends on the Anthropic SDK.
+ *
+ * NOTE ON THE C BOUNDARY: this is deliberately NOT the ScanResult scorecard.
+ * It stops at classified line items plus qualifying-variety counts. Turning
+ * that into a pass/fail verdict is Role C's rule engine, and the final shape
+ * needs one conversation with C so this slots into their engine rather than
+ * duplicating half of it.
+ */
+import type { Category, StorageState } from "./rules/constants";
+
+export type { Category, StorageState };
+
+/** An item that survived filtering. Accessory foods appear here with 0 units. */
+export interface ScanItem {
+  /** Item description exactly as printed on the invoice. */
+  description: string;
+  category: Category;
+  /** Specific variety, e.g. "whole milk", "roma tomato". */
+  variety: string;
+  /** Packs/cases on the line. Null when unknown (only possible for accessories). */
+  quantity: number | null;
+  /** Sellable units per pack. Null when unknown (only possible for accessories). */
+  packCount: number | null;
+  /** quantity × packCount, forced to 0 for accessory foods. */
+  stockingUnits: number;
+  /** Butter and all jerky. Counts for nothing, but stays visible. */
+  accessory: boolean;
+  storage: StorageState;
+  /** Refrigerated or fresh. */
+  perishable: boolean;
+  /** 0..1 — already filtered to >= MIN_COUNTED_CONFIDENCE. */
+  confidence: number;
+}
+
+/** A line we saw but deliberately did NOT count. Never feed these to scoring. */
+export interface ExcludedItem {
+  description: string;
+  /** Human-readable reason, safe to show in the UI. */
+  reason: string;
+  confidence: number;
+  /** Best guess, or null when we couldn't even categorize it. */
+  category: Category | null;
+}
+
+/**
+ * Number of varieties per category that cleared the minimum-stocking-units
+ * rule. Already floored.
+ */
+export type VarietyCountsByCategory = Record<Category, number>;
+
+export interface ScanMeta {
+  model: string;
+  /** Raw printed lines pass 1 transcribed. */
+  rawLineCount: number;
+  countedCount: number;
+  excludedCount: number;
+  confidenceThreshold: number;
+  minStockingUnitsPerVariety: number;
+  timingMs: { extract: number; classify: number; total: number };
+}
+
+export interface ScanSuccess {
+  ok: true;
+  items: ScanItem[];        // counted (accessories included, at 0 units)
+  excluded: ExcludedItem[]; // NOT counted — display only
+  varietyCounts: VarietyCountsByCategory;
+  meta: ScanMeta;
+}
+
+/**
+ * Clearly-named alias for what this route returns, to keep it distinct from
+ * Role C's ScanResult scorecard.
+ */
+export type ClassifiedScanResult = ScanSuccess;
+
+export type ScanErrorCode =
+  | "no_image"
+  | "unsupported_media_type"
+  | "payload_too_large"
+  | "bad_request"
+  | "model_refused"
+  | "unparseable_model_output"
+  | "rate_limited"
+  | "upstream_error"
+  | "upstream_unreachable"
+  | "server_misconfigured"
+  | "internal_error";
+
+export interface ScanError {
+  ok: false;
+  error: { code: ScanErrorCode; message: string };
+}
+
+export type ScanResponse = ScanSuccess | ScanError;
