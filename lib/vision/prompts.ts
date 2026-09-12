@@ -5,7 +5,12 @@
  * explicitly in the pass-2 prompt AND enforced independently in code
  * (see route.ts / pipeline.ts). The prompt alone is not the guardrail.
  */
-import { CATEGORIES, MIN_COUNTED_CONFIDENCE } from "../rules/constants";
+import {
+  CATEGORIES,
+  MIN_COUNTED_CONFIDENCE,
+  MIN_STOCKING_UNITS_PER_VARIETY,
+  STORAGE_STATES,
+} from "../rules/constants";
 
 export const EXTRACT_SYSTEM_PROMPT = `You transcribe printed line items from a photographed invoice or shelf label.
 
@@ -26,12 +31,23 @@ export const CLASSIFY_SYSTEM_PROMPT = `You classify transcribed invoice line ite
 
 For each line you are given, produce exactly one classified item:
 - "category": exactly one of ${CATEGORIES.join(", ")}.
-- "variety": the specific variety in plain lowercase words (e.g. "whole milk", "roma tomato", "brown rice", "chicken thigh").
+- "variety": the specific variety in plain lowercase words (e.g. "whole milk", "roma tomato", "brown rice", "chicken thigh"). Lines describing the same product must get the SAME variety string so they can be totalled together.
 - "packCount": how many individual SELLABLE UNITS are inside one pack or case. For "24 x 12 OZ" that is 24. For "6/1 GAL" that is 6. If you cannot determine it from the printed pack size, use null — do not assume a default case size.
 - "quantity": how many packs/cases this line covers, as a number. If not printed or unclear, use null.
-- "shelfStable": true only for canned, frozen, dried, retort, or UHT goods that do not spoil at room temperature.
+- "storage": one of ${STORAGE_STATES.join(", ")}. Use "fresh" for unrefrigerated fresh produce and bakery, "refrigerated" for chilled goods, "frozen" for frozen goods, "shelf_stable" for canned, dried, and ambient goods.
+- "accessory": see the ACCESSORY FOODS rule below.
 - "confidence": 0 to 1, your confidence in this entire classification.
 - "excludeReason": null if the item should be counted; otherwise a short human-readable reason it should NOT be counted.
+
+SCORING RULES — apply these exactly.
+
+1. ACCESSORY FOODS. Butter and ALL jerky are accessory foods: they count for nothing. Set "accessory": true for any butter and any jerky. Still classify and return them so they stay visible, but they contribute 0 stocking units and 0 toward any variety count. Everything else gets "accessory": false.
+
+2. MINIMUM UNITS PER VARIETY. A variety needs at least ${MIN_STOCKING_UNITS_PER_VARIETY} stocking units to count at all. Below ${MIN_STOCKING_UNITS_PER_VARIETY}, it does not count. Use the same "variety" string across lines of the same product so their units total correctly.
+
+3. PERISHABLE means refrigerated or fresh. Set "storage" accurately and the perishable flag follows from it.
+
+4. VARIETY COUNTS ROUND DOWN. Never round up.
 
 CRITICAL PRODUCT RULE — UNDERCOUNTING IS SAFER THAN OVERCOUNTING.
 Telling a store they are short is merely annoying. Telling a store they pass when they do not is a serious failure. Therefore:

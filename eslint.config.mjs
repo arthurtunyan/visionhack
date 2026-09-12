@@ -8,7 +8,7 @@ const compat = new FlatCompat({
 
 const config = [
   ...compat.config({ extends: ["next/core-web-vitals", "next/typescript"] }),
-  { ignores: [".next/**", "node_modules/**", "next-env.d.ts"] },
+  { ignores: [".next/**", ".smoke-build/**", "node_modules/**", "next-env.d.ts"] },
 ];
 
 export default config;

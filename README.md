@@ -17,7 +17,10 @@ This repository is connected to [GitHub](https://github.com/arthurtunyan/visionh
 The backend vision pipeline (Role B) is implemented. The frontend and the
 rule engine are not.
 
-**Stack:** Next.js (App Router) + TypeScript, deployed on Vercel.
+**Stack:** Next.js (App Router) + TypeScript, deployed on Vercel. This repo is
+**API-only** — the interface lives on Framer and calls `/api/scan`
+cross-origin. The root page is a placeholder so Vercel has something to serve;
+please don't grow it into a UI.
 
 > Note: `CLAUDE.md` asks that no framework be assumed until the repository
 > establishes one. This stack was chosen because the `/api/scan` brief
@@ -46,6 +49,17 @@ rule engine are not.
 `ANTHROPIC_API_KEY` is **server-side only**. Never prefix it with
 `NEXT_PUBLIC_` and never import it into a client component.
 
+### Deploying
+
+The env var name is exactly **`ANTHROPIC_API_KEY`**.
+
+> Set it in the Vercel **project settings**, then **REDEPLOY**. Environment
+> variable changes do not apply to existing deployments — without a redeploy
+> the route keeps returning the "not configured" 500.
+
+If the key is missing the route returns a 500 whose message says exactly that,
+so the failure is self-explanatory rather than a generic crash.
+
 ## Commands
 
 ```bash
@@ -53,19 +67,42 @@ npm run dev        # dev server
 npm run build      # production build
 npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
-npm run smoke      # smoke test (run `npm run build` first)
+npm test           # scoring-rule unit tests — no server, no API key
+npm run smoke      # end-to-end check (run `npm run build` first)
 ```
 
-`npm run smoke` checks the undercounting rules and the request guards without
-needing a key. The live vision call only runs when `ANTHROPIC_API_KEY` is set:
+### Verifying it works
+
+`npm test` covers the four scoring rules as pure functions. No key, no network,
+runs in CI.
+
+`npm run smoke` boots the production build and checks the CORS preflight and
+every request guard. **The live vision call only runs when the key is present**
+— whoever holds it should run:
 
 ```bash
-npm run build && ANTHROPIC_API_KEY=sk-ant-... npm run smoke
+npm run build && ANTHROPIC_API_KEY=... npm run smoke
+```
+
+Other forms:
+
+```bash
+npm run smoke -- ./path/to/invoice.jpg            # your own image
+npm run smoke -- --url https://<app>.vercel.app   # hit the deployed route
+```
+
+Or straight curl against a deployment:
+
+```bash
+curl -sS -X POST https://<app>.vercel.app/api/scan \
+  -F "image=@fixtures/sample-invoice.png" | jq
 ```
 
 ## API
 
-`POST /api/scan` is documented in [docs/api-scan.md](docs/api-scan.md).
+`POST /api/scan` is documented in [docs/api-scan.md](docs/api-scan.md), including
+the request shape and the response TypeScript type for wiring up the Framer
+button.
 
 ## Contributing
 

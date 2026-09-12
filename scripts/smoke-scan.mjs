@@ -1,29 +1,45 @@
 /**
- * Smoke test for POST /api/scan.
+ * One-command verification for POST /api/scan.
  *
- *   npm run build && npm run smoke
+ *   npm run smoke                                  local server, full check
+ *   npm run smoke -- ./path/to/invoice.jpg         local, custom image
+ *   npm run smoke -- --url https://app.vercel.app  hit a deployed URL
  *
- * Phase 1 (no API key needed) — exercises the real undercounting rules against
- *   the compiled partition module.
- * Phase 2 (no API key needed) — boots the built server and exercises the
- *   request guards over real HTTP.
- * Phase 3 (needs ANTHROPIC_API_KEY) — one real two-pass vision call against
- *   fixtures/sample-invoice.png. SKIPPED, loudly, when no key is present.
+ * Local runs boot the production build, exercise the CORS preflight and every
+ * request guard, then — only if ANTHROPIC_API_KEY is present — run the real
+ * two-pass vision call and pretty-print the JSON.
+ *
+ * The key is used, never printed. Nothing here echoes its value.
+ *
+ * For the pure rule tests (no server, no key) run `npm test`.
  */
-import { spawn, spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
+import { spawn } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const require = createRequire(import.meta.url);
 
+// --- args -------------------------------------------------------------------
+const argv = process.argv.slice(2);
+let remoteUrl = null;
+let imagePath = resolve(root, "fixtures/sample-invoice.png");
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i] === "--url") remoteUrl = argv[++i];
+  else if (!argv[i].startsWith("--")) imagePath = resolve(process.cwd(), argv[i]);
+}
+
+if (!existsSync(imagePath)) {
+  console.error(`Image not found: ${imagePath}`);
+  process.exit(1);
+}
+
+const hasKey = Boolean(process.env.ANTHROPIC_API_KEY);
 let passed = 0;
 let failed = 0;
 
-function check(name, condition, detail = "") {
-  if (condition) {
+function check(name, ok, detail = "") {
+  if (ok) {
     passed++;
     console.log(`  PASS  ${name}`);
   } else {
@@ -31,115 +47,69 @@ function check(name, condition, detail = "") {
     console.log(`  FAIL  ${name}${detail ? ` — ${detail}` : ""}`);
   }
 }
+const section = (t) => console.log(`\n=== ${t} ===`);
 
-function section(title) {
-  console.log(`\n=== ${title} ===`);
-}
-
-// ---------------------------------------------------------------------------
-// Phase 1 — undercounting rules
-// ---------------------------------------------------------------------------
-section("Phase 1: undercounting rules (compiled from lib/)");
-
-console.log("  building lib/rules -> .smoke-build ...");
-const build = spawnSync("npx", ["tsc", "-p", "tsconfig.smoke.json"], {
-  cwd: root,
-  encoding: "utf8",
-});
-if (build.status !== 0) {
-  console.error("  could not compile lib/rules:\n", build.stdout, build.stderr);
-  process.exit(1);
+function mediaTypeFor(p) {
+  const ext = p.toLowerCase().split(".").pop();
+  return { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif" }[ext] ?? "image/jpeg";
 }
 
-const { partitionClassifiedItems } = require(resolve(root, ".smoke-build/rules/partition.js"));
-
-/** Fully valid line unless overridden. */
-function line(over = {}) {
-  return {
-    sourceLineText: "WHL MLK HOMOGENIZED",
-    category: "dairy",
-    variety: "whole milk",
-    packCount: 6,
-    quantity: 4,
-    shelfStable: false,
-    confidence: 0.95,
-    excludeReason: null,
-    ...over,
-  };
+function imageForm() {
+  const form = new FormData();
+  form.append("image", new Blob([readFileSync(imagePath)], { type: mediaTypeFor(imagePath) }), "invoice");
+  return form;
 }
 
-{
-  const { items, excluded } = partitionClassifiedItems([line()]);
-  check("clean dairy line is counted", items.length === 1 && excluded.length === 0);
-  check("stockingUnits = quantity x packCount", items[0]?.stockingUnits === 24, `got ${items[0]?.stockingUnits}`);
-  check("dairy is perishable", items[0]?.perishable === true);
-}
-{
-  // "25 LB CS" is a weight, not a unit count — packCount is unknowable.
-  const { items, excluded } = partitionClassifiedItems([
-    line({ sourceLineText: "ROMA TOMATOES", category: "produce", packCount: null }),
-  ]);
-  check("weight-only pack size is NOT counted", items.length === 0 && excluded.length === 1);
-  check("excluded reason names the pack size", /pack size or quantity/i.test(excluded[0]?.reason ?? ""));
-}
-{
-  const { items, excluded } = partitionClassifiedItems([
-    line({ sourceLineText: "PAPER TOWELS 2PLY", excludeReason: "Not a food category." }),
-  ]);
-  check("model-excluded line is NOT counted", items.length === 0 && excluded.length === 1);
-  check("model's own reason is preserved", excluded[0]?.reason === "Not a food category.");
-}
-{
-  const { items, excluded } = partitionClassifiedItems([line({ confidence: 0.5 })]);
-  check("below-threshold confidence is NOT counted", items.length === 0 && excluded.length === 1);
-  check("low-confidence reason is reported", /low confidence/i.test(excluded[0]?.reason ?? ""));
-}
-{
-  const { items } = partitionClassifiedItems([
-    line({ sourceLineText: "BLACK BEANS CANNED", category: "protein", shelfStable: true, packCount: 24, quantity: 2 }),
-  ]);
-  check("shelf-stable protein is counted", items.length === 1);
-  check("shelf-stable overrides perishable", items[0]?.perishable === false);
-}
-{
-  const { items } = partitionClassifiedItems([
-    line({ sourceLineText: "BROWN RICE LONG GRAIN", category: "grains", packCount: 8, quantity: 3 }),
-  ]);
-  check("grains are never perishable", items[0]?.perishable === false);
-}
-{
-  const { items } = partitionClassifiedItems([line({ confidence: 1.7 })]);
-  check("out-of-range confidence is clamped to 1", items[0]?.confidence === 1, `got ${items[0]?.confidence}`);
-}
-{
-  const { items, excluded } = partitionClassifiedItems([line({ quantity: 2.5, packCount: 3 })]);
-  check("fractional stocking units are NOT counted", items.length === 0 && excluded.length === 1);
-}
-{
-  const { items, excluded } = partitionClassifiedItems([line({ quantity: 0 })]);
-  check("zero quantity is NOT counted", items.length === 0 && excluded.length === 1);
-}
-{
-  const { items, excluded } = partitionClassifiedItems([line({ quantity: -4 })]);
-  check("negative quantity is NOT counted", items.length === 0 && excluded.length === 1);
+/** POST the image and pretty-print whatever comes back. */
+async function runScan(base) {
+  const started = Date.now();
+  const res = await fetch(`${base}/api/scan`, { method: "POST", body: imageForm() });
+  const body = await res.json().catch(() => null);
+  console.log(`  HTTP ${res.status} in ${Date.now() - started}ms`);
+  console.log(JSON.stringify(body, null, 2));
+
+  check("returns 200", res.status === 200, `got ${res.status}`);
+  if (body?.ok) {
+    check("counted at least one item", Array.isArray(body.items) && body.items.length > 0);
+    check(
+      "non-food lines were not counted",
+      !body.items.some((i) => /paper towel|bleach|cleaner/i.test(i.description ?? "")),
+    );
+    check(
+      "accessory foods contribute zero units",
+      body.items.filter((i) => i.accessory).every((i) => i.stockingUnits === 0),
+    );
+    check("varietyCounts covers all four categories",
+      body.varietyCounts && ["dairy", "grains", "protein", "produce"].every((c) => typeof body.varietyCounts[c] === "number"));
+  }
+  return body;
 }
 
-// ---------------------------------------------------------------------------
-// Phase 2 / 3 — live server
-// ---------------------------------------------------------------------------
+// --- remote mode ------------------------------------------------------------
+if (remoteUrl) {
+  section(`Deployed scan: ${remoteUrl}`);
+  console.log(`  image: ${imagePath}`);
+  await runScan(remoteUrl.replace(/\/$/, ""));
+  console.log(`\n${passed} passed, ${failed} failed`);
+  process.exit(failed === 0 ? 0 : 1);
+}
+
+// --- local mode -------------------------------------------------------------
 if (!existsSync(resolve(root, ".next"))) {
-  console.error("\nNo .next build found. Run `npm run build` first.");
+  console.error("No .next build found. Run `npm run build` first.");
   process.exit(1);
 }
 
 const PORT = process.env.SMOKE_PORT ?? "3111";
 const BASE = `http://127.0.0.1:${PORT}`;
-const hasKey = Boolean(process.env.ANTHROPIC_API_KEY);
-
+// detached so we can kill the whole process group — npx does not forward
+// SIGTERM to the next-server child, which otherwise keeps holding the port
+// and makes the next run silently test a stale build.
 const server = spawn("npx", ["next", "start", "-p", PORT], {
   cwd: root,
   env: process.env,
   stdio: ["ignore", "pipe", "pipe"],
+  detached: true,
 });
 let serverLog = "";
 server.stdout.on("data", (d) => (serverLog += d));
@@ -149,8 +119,7 @@ async function waitForServer(timeoutMs = 40_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
-      // Any response at all means it's listening.
-      await fetch(`${BASE}/api/scan`, { method: "POST" });
+      await fetch(`${BASE}/api/scan`, { method: "OPTIONS" });
       return true;
     } catch {
       await new Promise((r) => setTimeout(r, 400));
@@ -159,96 +128,78 @@ async function waitForServer(timeoutMs = 40_000) {
   return false;
 }
 
-function pngFixture() {
-  return readFileSync(resolve(root, "fixtures/sample-invoice.png"));
-}
-
 try {
   if (!(await waitForServer())) {
-    console.error("\nServer did not start:\n", serverLog);
+    console.error("Server did not start:\n", serverLog);
     process.exit(1);
   }
 
-  section("Phase 2: request guards (no API key needed)");
-
+  section("CORS preflight (the Framer frontend depends on this)");
   {
     const r = await fetch(`${BASE}/api/scan`, {
-      method: "POST",
-      headers: { "content-type": "text/plain" },
-      body: "nope",
+      method: "OPTIONS",
+      headers: { origin: "https://example.framer.website", "access-control-request-method": "POST" },
     });
+    check("OPTIONS returns 204", r.status === 204, `got ${r.status}`);
+    check("allows the requesting origin", Boolean(r.headers.get("access-control-allow-origin")));
+    check("allows POST", /POST/.test(r.headers.get("access-control-allow-methods") ?? ""));
+    check("allows Content-Type", /content-type/i.test(r.headers.get("access-control-allow-headers") ?? ""));
+  }
+  {
+    const r = await fetch(`${BASE}/api/scan`, { method: "POST", headers: { origin: "https://example.framer.website", "content-type": "text/plain" }, body: "x" });
+    check("error responses also carry CORS headers", Boolean(r.headers.get("access-control-allow-origin")));
+  }
+
+  section("Request guards");
+  const cases = [
+    ["wrong content-type -> 400", { headers: { "content-type": "text/plain" }, body: "nope" }, 400, "bad_request"],
+    ["JSON without image -> 400", { headers: { "content-type": "application/json" }, body: JSON.stringify({ mediaType: "image/png" }) }, 400, "no_image"],
+    ["bad mediaType -> 415", { headers: { "content-type": "application/json" }, body: JSON.stringify({ image: "AAAA", mediaType: "application/pdf" }) }, 415, "unsupported_media_type"],
+  ];
+  for (const [name, init, status, code] of cases) {
+    const r = await fetch(`${BASE}/api/scan`, { method: "POST", ...init });
     const b = await r.json();
-    check("wrong content-type -> 400 bad_request", r.status === 400 && b.error?.code === "bad_request", `${r.status} ${b.error?.code}`);
+    check(name, r.status === status && b.error?.code === code, `${r.status} ${b.error?.code}`);
   }
   {
     const form = new FormData();
     form.append("notimage", new Blob(["x"]), "x.txt");
     const r = await fetch(`${BASE}/api/scan`, { method: "POST", body: form });
     const b = await r.json();
-    check("multipart without image field -> 400 no_image", r.status === 400 && b.error?.code === "no_image", `${r.status} ${b.error?.code}`);
-  }
-  {
-    const r = await fetch(`${BASE}/api/scan`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ mediaType: "image/png" }),
-    });
-    const b = await r.json();
-    check("JSON without image -> 400 no_image", r.status === 400 && b.error?.code === "no_image", `${r.status} ${b.error?.code}`);
-  }
-  {
-    const r = await fetch(`${BASE}/api/scan`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ image: "AAAA", mediaType: "application/pdf" }),
-    });
-    const b = await r.json();
-    check("bad mediaType -> 415 unsupported_media_type", r.status === 415 && b.error?.code === "unsupported_media_type", `${r.status} ${b.error?.code}`);
+    check("multipart without image field -> 400", r.status === 400 && b.error?.code === "no_image", `${r.status} ${b.error?.code}`);
   }
   {
     const form = new FormData();
-    // 9 MB > the 8 MB cap.
     form.append("image", new Blob([new Uint8Array(9 * 1024 * 1024)], { type: "image/png" }), "big.png");
     const r = await fetch(`${BASE}/api/scan`, { method: "POST", body: form });
     const b = await r.json();
-    check("oversize upload -> 413 payload_too_large", r.status === 413 && b.error?.code === "payload_too_large", `${r.status} ${b.error?.code}`);
+    check("oversize upload -> 413", r.status === 413 && b.error?.code === "payload_too_large", `${r.status} ${b.error?.code}`);
   }
 
   if (!hasKey) {
-    const form = new FormData();
-    form.append("image", new Blob([pngFixture()], { type: "image/png" }), "invoice.png");
-    const r = await fetch(`${BASE}/api/scan`, { method: "POST", body: form });
+    const r = await fetch(`${BASE}/api/scan`, { method: "POST", body: imageForm() });
     const b = await r.json();
-    check(
-      "valid image without key -> 500 server_misconfigured",
-      r.status === 500 && b.error?.code === "server_misconfigured",
-      `${r.status} ${b.error?.code}`,
-    );
+    check("missing key -> 500 server_misconfigured", r.status === 500 && b.error?.code === "server_misconfigured", `${r.status} ${b.error?.code}`);
+    check("the error tells the deployer to redeploy", /redeploy/i.test(b.error?.message ?? ""));
+    check("the error never contains a key value", !/sk-ant-/i.test(JSON.stringify(b)));
   }
 
-  section("Phase 3: live two-pass vision call");
+  section("Live two-pass vision call");
   if (!hasKey) {
-    console.log("  SKIPPED — ANTHROPIC_API_KEY is not set.");
-    console.log("  This phase is the only real check that the model call works.");
-    console.log("  Run `ANTHROPIC_API_KEY=sk-ant-... npm run smoke` before trusting the pipeline.");
+    console.log("  SKIPPED — ANTHROPIC_API_KEY is not set in this environment.");
+    console.log("  This is the ONLY check that the model call actually works.");
+    console.log("  Whoever holds the key should run:");
+    console.log("    npm run build && ANTHROPIC_API_KEY=... npm run smoke");
   } else {
-    const form = new FormData();
-    form.append("image", new Blob([pngFixture()], { type: "image/png" }), "invoice.png");
-    const started = Date.now();
-    const r = await fetch(`${BASE}/api/scan`, { method: "POST", body: form });
-    const b = await r.json();
-    console.log(`  HTTP ${r.status} in ${Date.now() - started}ms`);
-    console.log(JSON.stringify(b, null, 2));
-    check("live scan returns 200", r.status === 200, `${r.status}`);
-    check("live scan counted at least one item", Array.isArray(b.items) && b.items.length > 0);
-    check(
-      "non-food lines were not counted",
-      Array.isArray(b.items) &&
-        !b.items.some((i) => /paper towel|bleach/i.test(i.description ?? "")),
-    );
+    console.log(`  image: ${imagePath}`);
+    await runScan(BASE);
   }
 } finally {
-  server.kill("SIGTERM");
+  try {
+    process.kill(-server.pid, "SIGTERM");
+  } catch {
+    server.kill("SIGTERM");
+  }
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

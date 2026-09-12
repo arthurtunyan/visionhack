@@ -8,7 +8,7 @@
  * an explicit `null` we can branch on instead of `undefined`.
  */
 import * as z from "zod/v4";
-import { CATEGORIES } from "../rules/constants";
+import { CATEGORIES, STORAGE_STATES } from "../rules/constants";
 
 /** Pass 1 — pure transcription. No interpretation, no categorization. */
 export const RawLineSchema = z.object({
@@ -39,8 +39,10 @@ export const ClassifiedItemSchema = z.object({
   packCount: z.number().nullable(),
   /** Number of packs/cases on this line. Null if not determinable. */
   quantity: z.number().nullable(),
-  /** True for canned / frozen / dried / UHT goods that do not spoil. */
-  shelfStable: z.boolean(),
+  /** How the item is stored. Drives the perishable flag. */
+  storage: z.enum(STORAGE_STATES),
+  /** True for butter and any jerky — accessory foods that count for nothing. */
+  accessory: z.boolean(),
   /** 0..1 confidence in this whole classification. */
   confidence: z.number(),
   /**

@@ -11,7 +11,9 @@ import {
   IMAGE_FIELD_NAME,
   MAX_UPLOAD_BYTES,
   MIN_COUNTED_CONFIDENCE,
+  MIN_STOCKING_UNITS_PER_VARIETY,
   MODEL,
+  corsHeaders,
   isAllowedMediaType,
   type AllowedMediaType,
 } from "@/lib/rules/constants";
@@ -24,8 +26,25 @@ import { ScanPipelineError, classifyLines, extractRawLines } from "@/lib/vision/
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-function fail(code: ScanError["error"]["code"], message: string, status: number) {
-  return NextResponse.json<ScanResponse>({ ok: false, error: { code, message } }, { status });
+function fail(
+  code: ScanError["error"]["code"],
+  message: string,
+  status: number,
+  origin: string | null,
+) {
+  return NextResponse.json<ScanResponse>(
+    { ok: false, error: { code, message } },
+    { status, headers: corsHeaders(origin) },
+  );
+}
+
+/**
+ * The frontend is on Framer — a different origin — so the browser sends a
+ * preflight before every POST. Without this the demo fails in the browser
+ * with no useful error.
+ */
+export async function OPTIONS(req: Request) {
+  return new Response(null, { status: 204, headers: corsHeaders(req.headers.get("origin")) });
 }
 
 interface DecodedImage {
@@ -124,6 +143,7 @@ function assertSize(byteLength: number) {
 
 export async function POST(req: Request) {
   const startedAt = Date.now();
+  const origin = req.headers.get("origin");
 
   try {
     const { base64, mediaType } = await readImage(req);
@@ -136,18 +156,20 @@ export async function POST(req: Request) {
     const classified = await classifyLines(raw);
     const classifyMs = Date.now() - classifyStart;
 
-    const { items, excluded } = partitionClassifiedItems(classified.items);
+    const { items, excluded, varietyCounts } = partitionClassifiedItems(classified.items);
 
     const payload: ScanSuccess = {
       ok: true,
       items,
       excluded,
+      varietyCounts,
       meta: {
         model: MODEL,
         rawLineCount: raw.lines.length,
         countedCount: items.length,
         excludedCount: excluded.length,
         confidenceThreshold: MIN_COUNTED_CONFIDENCE,
+        minStockingUnitsPerVariety: MIN_STOCKING_UNITS_PER_VARIETY,
         timingMs: {
           extract: extractMs,
           classify: classifyMs,
@@ -156,12 +178,15 @@ export async function POST(req: Request) {
       },
     };
 
-    return NextResponse.json<ScanResponse>(payload, { status: 200 });
+    return NextResponse.json<ScanResponse>(payload, {
+      status: 200,
+      headers: corsHeaders(origin),
+    });
   } catch (err) {
     if (err instanceof ScanPipelineError) {
-      return fail(err.code, err.message, err.status);
+      return fail(err.code, err.message, err.status, origin);
     }
     console.error("[/api/scan] unexpected error", err);
-    return fail("internal_error", "Unexpected server error.", 500);
+    return fail("internal_error", "Unexpected server error.", 500, origin);
   }
 }

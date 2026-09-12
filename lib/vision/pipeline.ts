@@ -13,7 +13,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
-import { MAX_TOKENS, MODEL, type AllowedMediaType } from "../rules/constants";
+import {
+  API_KEY_ENV_VAR,
+  MAX_TOKENS,
+  MISSING_KEY_MESSAGE,
+  MODEL,
+  type AllowedMediaType,
+} from "../rules/constants";
 import type { ScanErrorCode } from "../types";
 import {
   ClassificationSchema,
@@ -40,13 +46,11 @@ export class ScanPipelineError extends Error {
  * (e.g. during `next build`) never throws on a missing key.
  */
 function getClient(): Anthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env[API_KEY_ENV_VAR];
   if (!apiKey) {
-    throw new ScanPipelineError(
-      "server_misconfigured",
-      "ANTHROPIC_API_KEY is not set on the server.",
-      500,
-    );
+    // Loud and actionable: this is the most likely first failure after a
+    // deploy. Never include the key itself in any message.
+    throw new ScanPipelineError("server_misconfigured", MISSING_KEY_MESSAGE, 500);
   }
   return new Anthropic({ apiKey });
 }
@@ -72,7 +76,7 @@ function toScanError(err: unknown, stage: string): ScanPipelineError {
   if (err instanceof Anthropic.AuthenticationError) {
     return new ScanPipelineError(
       "server_misconfigured",
-      `ANTHROPIC_API_KEY was rejected during ${stage}.`,
+      `${API_KEY_ENV_VAR} was rejected during ${stage}. Check the value in the Vercel project settings, then redeploy.`,
       500,
     );
   }
