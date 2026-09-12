@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 FONTS = Path(__file__).resolve().parent / "fonts"
 
 INK, BLUE, PAPER = "#000000", "#1B4DFF", "#FFFFFF"
+# Near-black for large surfaces: pure #000 reads as a hole on a screen.
+COAL, TINT, BLUE_DK = "#0B0D12", "#F4F6FB", "#0F35C4"
 MUTE, LINE, WASH = "#6B6B6B", "#E6E6E6", "#F6F7F9"
 WARN, BAD, GOOD = "#8A5300", "#B3261E", "#1B4DFF"
 
@@ -197,3 +199,89 @@ def mini_app(inner, active="Dashboard", h=430):
     return (f'<div style="display:flex;height:{h}px">{app_sidebar(active, 180)}'
             f'<div style="flex:1;min-width:0;padding:22px 24px;display:flex;'
             f'flex-direction:column;gap:16px">{inner}</div></div>')
+
+
+# --- coverage ----------------------------------------------------------------
+# Programs Ledger tracks. These are PROGRAM NAMES, rendered typographically.
+# No agency seal or logo is reproduced anywhere in this kit: putting a federal
+# seal on a commercial page implies an endorsement that does not exist, and
+# agency seals carry their own restrictions. Every surface that lists these also
+# carries the non-affiliation line below.
+NON_AFFILIATION = ("Program names identify what Ledger tracks. Ledger is not affiliated with, "
+                   "endorsed by, or acting on behalf of any agency or program.")
+
+PROGRAMS = {
+    "Federal": [
+        ("SNAP", "Supplemental Nutrition Assistance Program retailer authorization"),
+        ("WIC", "Women, Infants and Children vendor authorization"),
+        ("EBT", "Electronic Benefit Transfer acceptance"),
+        ("FDA", "Food facility registration"),
+        ("EPA", "Used oil, hazardous waste and refrigerant handling"),
+        ("OSHA", "Hazard communication and workplace posting"),
+        ("DOT", "Hazardous materials shipping"),
+        ("TTB", "Alcohol and tobacco federal permits"),
+    ],
+    "State": [
+        ("ABC", "Alcoholic beverage control licence"),
+        ("W&M", "Weights and measures certification"),
+        ("BAR", "Automotive repair registration"),
+        ("TRL", "Tobacco retail licence"),
+        ("RSP", "Seller's permit and resale certificate"),
+        ("BOP", "Board of pharmacy licence"),
+    ],
+    "Local": [
+        ("CHP", "County health permit"),
+        ("FIRE", "Fire marshal inspection"),
+        ("BTC", "Business tax certificate"),
+        ("CoO", "Certificate of occupancy"),
+    ],
+}
+
+# Ledger is not a grocery tool. Every small retailer carries a permit stack.
+VERTICALS = [
+    ("Grocery & convenience", "SNAP and WIC stocking, health permit, tobacco, scales",
+     ["SNAP", "WIC", "EBT", "CHP", "TRL", "W&M"]),
+    ("Auto parts & service", "Used oil and hazardous waste, refrigerant handling, repair registration",
+     ["EPA", "OSHA", "DOT", "BAR", "BTC", "FIRE"]),
+    ("Liquor & tobacco", "State licence conditions, federal permits, age-verification posting",
+     ["ABC", "TTB", "TRL", "BTC", "FIRE"]),
+    ("Pharmacy & health", "Board of pharmacy, controlled substances, cold chain",
+     ["BOP", "FDA", "CHP", "OSHA"]),
+    ("Hardware & garden", "Pesticide sales, hazardous storage, fire load, scales",
+     ["EPA", "OSHA", "FIRE", "W&M", "BTC"]),
+]
+PROGRAM_LOOKUP = {a: d for g in PROGRAMS.values() for a, d in g}
+
+# Short descriptors for the strip. A badge reading "SNAP" with "SNAP" printed
+# under it says nothing twice.
+SHORT = {
+    "SNAP": "Food benefits", "WIC": "Vendor status", "EBT": "Benefit payments",
+    "EPA": "Waste & refrigerant", "OSHA": "Workplace safety", "ABC": "Alcohol licence",
+    "DOT": "Hazmat shipping", "CHP": "Health permit", "W&M": "Scales", "TRL": "Tobacco",
+    "FDA": "Food facility", "TTB": "Federal permits", "BAR": "Repair registration",
+    "RSP": "Seller's permit", "BOP": "Pharmacy licence", "FIRE": "Fire marshal",
+    "BTC": "Business tax", "CoO": "Occupancy",
+}
+
+
+def badge(abbr, size=62, dark=False, mute=False):
+    """A program badge. Typographic by design — never an agency seal."""
+    fg = PAPER if dark else (MUTE if mute else INK)
+    bg = COAL if dark else (PAPER if mute else TINT)
+    bd = "transparent" if dark else LINE
+    fs = max(11, int(size * (0.30 if len(abbr) <= 3 else 0.24)))
+    return (f'<div style="width:{size}px;height:{size}px;border-radius:{int(size*0.26)}px;'
+            f'background:{bg};border:1px solid {bd};display:flex;align-items:center;'
+            f'justify-content:center;flex:0 0 {size}px">'
+            f'<span style="font-size:{fs}px;font-weight:700;letter-spacing:-.02em;color:{fg}">'
+            f'{abbr}</span></div>')
+
+
+def section_head(eyebrow, title, sub="", width=820, on_dark=False):
+    c = PAPER if on_dark else INK
+    m = "#9BA3AF" if on_dark else MUTE
+    return (f'<div style="max-width:{width}px">'
+            f'<div class=lbl style="color:{BLUE if not on_dark else "#6E8BFF"}">{eyebrow}</div>'
+            f'<div class=h1 style="font-size:46px;margin-top:13px;color:{c}">{title}</div>'
+            + (f'<div style="font-size:18px;margin-top:15px;font-weight:500;line-height:1.55;'
+               f'color:{m}">{sub}</div>' if sub else "") + '</div>')

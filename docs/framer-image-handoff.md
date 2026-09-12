@@ -143,16 +143,61 @@ other doesn't exist.
 
 ---
 
-## Beyond the 12 slots
+## Where everything lives
 
-`brand/site/features/` and `brand/site/sections/` hold mocks of every feature and
-every part of the page, for when the site grows past its current slots. They all
-show **the same store on the same day** — Corner Market #17, passing dairy,
-grains and protein but short on produce because two produce lines were priced by
-weight and Ledger refused to guess a unit count. Mixing in a mock from a
-different scenario will contradict the others, so keep the story straight.
+```
+brand/
+  site/                 12 images for the Framer slots above
+    features/           13 product screens
+    sections/           12 page sections
+  logo/                 mark, lockup, favicons, wordmark outline
+  icons/                app icons + favicon.ico
+  social/               avatar, OG card, README banner
+  brand.json            palette, rules, file map  <- agents read this
+  README.md             how to use the kit        <- agents read this
+  tools/
+    site_kit.py         palette, scenario, programs, verticals, components
+    build-mocks.py      features + sections
+    build-site-images.py  the 12 Framer slots
+    extract-wordmark.py   regenerates the wordmark outline
+    fonts/              Archivo 400-700, vendored
+docs/framer-image-handoff.md   this file
+```
 
-**Features** (1200x800, mobile 640x1000)
+Rebuild anything:
+
+```bash
+python3 brand/tools/build-mocks.py              # features + sections
+python3 brand/tools/build-mocks.py sections     # or: features
+python3 brand/tools/build-mocks.py f03 s07      # individual ids
+python3 brand/tools/build-site-images.py        # the 12 slot images
+```
+
+**`site_kit.py` is the single source for the story.** Palette, the store scenario,
+the programme list and the industry list all live there, so changing a number
+once updates every image that shows it.
+
+## Programme badges, not agency logos
+
+The coverage strip and the dark coverage section use **typographic badges** —
+`SNAP`, `WIC`, `EBT`, `EPA`, `OSHA`, `ABC`, `DOT` and the rest set in Archivo on
+a tile.
+
+No agency seal or logo is reproduced anywhere in this kit, and that is
+deliberate. Putting a federal seal on a commercial page implies an endorsement
+that does not exist, and agency seals carry their own legal restrictions on
+exactly that use. Every surface listing these programmes also carries the
+non-affiliation line, which is defined once in `site_kit.NON_AFFILIATION`:
+
+> Program names identify what Ledger tracks. Ledger is not affiliated with,
+> endorsed by, or acting on behalf of any agency or program.
+
+Keep that line on any surface that shows the badges. To add a programme, add it
+to `PROGRAMS` and `SHORT` in `site_kit.py` and rebuild.
+
+## Product screens — `brand/site/features/`
+
+1200x800, except the phone at 640x1000.
 
 | File | Shows |
 |---|---|
@@ -167,33 +212,30 @@ different scenario will contradict the others, so keep the story straight.
 | `f09-staff-cards.png` | Food handler card tracking |
 | `f10-multi-store.png` | Group view across locations |
 | `f11-mobile-scan.png` | Phone result screen |
-| `f12-licenses.png` | All tracked licences |
+| `f12-licenses.png` | All tracked permits (grocery) |
+| `f13-auto-parts.png` | **Auto parts store** — EPA, OSHA, DOT, BAR |
 
-**Page sections** (1600 wide)
+## Page sections — `brand/site/sections/`
 
-| File | Section |
-|---|---|
-| `s01-nav.png` | Header / nav |
-| `s02-hero.png` | Hero |
-| `s03-how-it-works.png` | Three steps |
-| `s04-features.png` | Why Ledger — six features |
-| `s05-social-proof.png` | Quote + stats |
-| `s06-pricing.png` | Three plans |
-| `s07-faq.png` | Five questions |
-| `s08-cta.png` | Closing CTA (black band) |
-| `s09-footer.png` | Footer |
+1600px wide. In page order.
 
-Rebuild any of them:
+| File | Section | Ground |
+|---|---|---|
+| `s01-nav.png` | Header | white |
+| `s02-hero.png` | Hero, app window bled off the right | white to tint |
+| `s03-coverage-strip.png` | Programme badge strip | white |
+| `s04-industries.png` | Five industries, not just grocery | tint |
+| `s05-how-it-works.png` | Three steps | white |
+| `s06-features.png` | Why Ledger — bento | white |
+| `s07-coverage.png` | 18 programmes, three levels | **dark** |
+| `s08-social-proof.png` | Quote + one stat | white |
+| `s09-pricing.png` | Three plans | tint |
+| `s10-faq.png` | Five questions | white |
+| `s11-cta.png` | Closing CTA | **dark** |
+| `s12-footer.png` | Footer | white |
 
-```bash
-python3 brand/tools/build-mocks.py              # everything
-python3 brand/tools/build-mocks.py features     # or: sections
-python3 brand/tools/build-mocks.py f03 s06      # individual ids
-```
-
-Copy in these sections is written to be defensible: the FAQ and footer both say
-Ledger is not official USDA guidance and that authorization decisions rest with
-the agency. Keep that if you reword anything.
+The grounds alternate on purpose. Twelve white sections in a row is what made
+the first pass read flat.
 
 ## If you're pointing Claude at this
 
