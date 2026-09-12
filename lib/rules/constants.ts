@@ -123,7 +123,7 @@ export function computeStockingUnits(
 /** Upload limits. Role A downscales client-side, so this is a backstop. */
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8 MB
 
-/** Image types the Claude vision API accepts. */
+/** Image types the vision model accepts. */
 export const ALLOWED_MEDIA_TYPES = [
   "image/jpeg",
   "image/png",
@@ -140,44 +140,87 @@ export function isAllowedMediaType(value: string): value is AllowedMediaType {
  * The frontend is hosted on Framer, i.e. a DIFFERENT ORIGIN, so the browser
  * sends a CORS preflight before every POST.
  *
- * TODO(hackathon): tighten this. The wildcard fallback below makes the route
- * callable from anywhere, which is fine for a demo and wrong for production.
- * Once the Framer site has its final domain, drop the fallback and keep only
- * the explicit list.
+ * Exact-match allowlist, no wildcards and no suffix matching: an origin that is
+ * not listed here gets NO Access-Control-Allow-Origin header at all, so the
+ * browser blocks the response. `*.framer.app` / `*.framer.website` used to be
+ * allowed as suffixes and anything else fell through to `*`, which meant any
+ * site on the internet could call this API.
+ *
+ * TODO(Role A): the Framer EDITOR preview may post from a different origin than
+ * the published site (Framer serves the canvas preview from its own shared
+ * domain). That origin is NOT listed here because it has not been observed
+ * first-hand — guessing it would re-open the "anyone's Framer project" hole we
+ * just closed. If /api/scan is CORS-blocked while working in the editor, read
+ * the Origin request header off the blocked request in the network tab and add
+ * that exact string to ALLOWED_ORIGINS. See docs/api-scan.md > CORS.
  */
+export const FRAMER_SITE_ORIGIN = "https://dark-role-914680.framer.app";
+
 export const ALLOWED_ORIGINS: readonly string[] = [
-  "https://framer.app",
-  "https://framer.website",
+  FRAMER_SITE_ORIGIN,
   "http://localhost:3000",
 ];
 
-export function resolveAllowedOrigin(requestOrigin: string | null): string {
-  if (requestOrigin) {
-    const allowed = ALLOWED_ORIGINS.some(
-      (o) => requestOrigin === o || requestOrigin.endsWith(`.${o.replace(/^https?:\/\//, "")}`),
-    );
-    if (allowed) return requestOrigin;
-  }
-  // Permissive fallback for the hackathon — see TODO above.
-  return "*";
+/**
+ * Returns the origin to echo back, or null when the caller is not allowed.
+ * Null means the header is omitted entirely — never `*`.
+ */
+export function resolveAllowedOrigin(requestOrigin: string | null): string | null {
+  if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) return requestOrigin;
+  return null;
 }
 
 export function corsHeaders(requestOrigin: string | null): Record<string, string> {
-  return {
-    "Access-Control-Allow-Origin": resolveAllowedOrigin(requestOrigin),
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
+    // Responses differ by Origin, so caches must not share them.
     Vary: "Origin",
   };
+  const allowed = resolveAllowedOrigin(requestOrigin);
+  if (allowed) headers["Access-Control-Allow-Origin"] = allowed;
+  return headers;
 }
 
 // ---------------------------------------------------------------------------
 // Model
 // ---------------------------------------------------------------------------
-/** Model + token settings. Exact model string — no date suffix. */
-export const MODEL = "claude-opus-5";
+/** OpenRouter's OpenAI-compatible chat completions endpoint. */
+export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+/**
+ * The vision model, as an OpenRouter model id. Both passes use it.
+ *
+ * Nemotron accepts image input and supports tools / tool_choice, but NOT
+ * `response_format`. So the pipeline does not ask for structured outputs — it
+ * forces a single function call per pass and reads the arguments (see
+ * lib/vision/pipeline.ts). Sending `response_format` with
+ * `provider.require_parameters` would be rejected before inference.
+ *
+ * A replacement model must therefore support image input AND forced tool
+ * calling. Swapping is a one-line change here.
+ */
+export const MODEL = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free";
 export const MAX_TOKENS = 16_000;
+
+/**
+ * Names of the single function each pass is forced to call. They are part of
+ * the request AND the response contract: a tool call under any other name is
+ * rejected rather than parsed.
+ */
+export const EXTRACT_TOOL_NAME = "submit_extraction";
+export const CLASSIFY_TOOL_NAME = "submit_classification";
+
+/** Both passes run deterministic — this is extraction and bookkeeping, not prose. */
+export const MODEL_TEMPERATURE = 0;
+
+/**
+ * Per-call backstop so a hung upstream fails as `upstream_unreachable` rather
+ * than being cut off mid-response. The route's own maxDuration (60s, shared by
+ * both passes) is the real ceiling.
+ */
+export const MODEL_REQUEST_TIMEOUT_MS = 55_000;
 
 /** Multipart field name / JSON key that Role A posts the image under. */
 export const IMAGE_FIELD_NAME = "image";
@@ -186,11 +229,16 @@ export const IMAGE_FIELD_NAME = "image";
 export const STORE_NAME_FIELD_NAME = "storeName";
 export const MAX_STORE_NAME_LENGTH = 100;
 
-/** Env var carrying the Anthropic key. Server-side only, never NEXT_PUBLIC_*. */
-export const API_KEY_ENV_VAR = "ANTHROPIC_API_KEY";
+/** Env var carrying the OpenRouter key. Server-side only, never NEXT_PUBLIC_*. */
+export const API_KEY_ENV_VAR = "OPENROUTER_API_KEY";
 
 /** Shown verbatim when the key is missing — it must tell the deployer what to fix. */
 export const MISSING_KEY_MESSAGE =
   `${API_KEY_ENV_VAR} is not configured on the server. ` +
   `Set it in the Vercel project settings, then REDEPLOY — ` +
   `environment variable changes do not apply to existing deployments.`;
+
+/** OpenRouter answers 402 when the account has run out of credits. */
+export const OUT_OF_CREDITS_MESSAGE =
+  "The OpenRouter account is out of credits. " +
+  "Top it up at openrouter.ai, then retry — no redeploy is needed.";

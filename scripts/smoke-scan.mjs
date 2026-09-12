@@ -4,9 +4,10 @@
  *   npm run smoke                                  local server, full check
  *   npm run smoke -- ./path/to/invoice.jpg         local, custom image
  *   npm run smoke -- --url https://app.vercel.app  hit a deployed URL
+ *   npm run smoke -- --runs 3                      repeat the live scan 3x
  *
  * Local runs boot the production build, exercise the CORS preflight and every
- * request guard, then — only if ANTHROPIC_API_KEY is present — run the real
+ * request guard, then — only if OPENROUTER_API_KEY is present — run the real
  * two-pass vision call and pretty-print the JSON.
  *
  * The key is used, never printed. Nothing here echoes its value.
@@ -24,8 +25,12 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 let remoteUrl = null;
 let imagePath = resolve(root, "fixtures/sample-invoice.png");
+// Forced tool calling either works every time or it doesn't. --runs N repeats
+// the live scan so a one-off success isn't mistaken for reliability.
+let runs = 1;
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === "--url") remoteUrl = argv[++i];
+  else if (argv[i] === "--runs") runs = Math.max(1, Number(argv[++i]) || 1);
   else if (!argv[i].startsWith("--")) imagePath = resolve(process.cwd(), argv[i]);
 }
 
@@ -34,7 +39,11 @@ if (!existsSync(imagePath)) {
   process.exit(1);
 }
 
-const hasKey = Boolean(process.env.ANTHROPIC_API_KEY);
+const hasKey = Boolean(process.env.OPENROUTER_API_KEY);
+
+// Must match ALLOWED_ORIGINS in lib/rules/constants.ts.
+const FRAMER_ORIGIN = "https://dark-role-914680.framer.app";
+const UNLISTED_ORIGIN = "https://evil.example";
 let passed = 0;
 let failed = 0;
 
@@ -93,15 +102,43 @@ async function runScan(base) {
         body.scorecardEs?.totalUnits === body.scorecard?.totalUnits &&
         body.scorecardEs?.fixes?.length === body.scorecard?.fixes?.length,
     );
+    check(
+      "meta.model is the configured model",
+      typeof body.meta?.model === "string" && body.meta.model.length > 0,
+      body.meta?.model,
+    );
+    summarize(body);
   }
   return body;
+}
+
+/** The hand-off summary: counts, reasons, varieties, verdict, timings. */
+function summarize(body) {
+  console.log("\n  --- summary ---");
+  console.log(`  model:         ${body.meta?.model}`);
+  console.log(`  items:         ${body.items?.length}`);
+  console.log(`  excluded:      ${body.excluded?.length}`);
+  for (const e of body.excluded ?? []) {
+    console.log(`                 - ${e.description}: ${e.reason}`);
+  }
+  console.log(`  varietyCounts: ${JSON.stringify(body.varietyCounts)}`);
+  console.log(`  overallStatus: ${body.scorecard?.overallStatus}`);
+  console.log(`  timingMs:      ${JSON.stringify(body.meta?.timingMs)}`);
+}
+
+/** Run the live scan `runs` times; every run must pass. */
+async function runScanRepeatedly(base) {
+  for (let i = 1; i <= runs; i++) {
+    if (runs > 1) console.log(`\n  --- run ${i} of ${runs} ---`);
+    await runScan(base);
+  }
 }
 
 // --- remote mode ------------------------------------------------------------
 if (remoteUrl) {
   section(`Deployed scan: ${remoteUrl}`);
   console.log(`  image: ${imagePath}`);
-  await runScan(remoteUrl.replace(/\/$/, ""));
+  await runScanRepeatedly(remoteUrl.replace(/\/$/, ""));
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed === 0 ? 0 : 1);
 }
@@ -150,16 +187,34 @@ try {
   {
     const r = await fetch(`${BASE}/api/scan`, {
       method: "OPTIONS",
-      headers: { origin: "https://example.framer.website", "access-control-request-method": "POST" },
+      headers: { origin: FRAMER_ORIGIN, "access-control-request-method": "POST" },
     });
     check("OPTIONS returns 204", r.status === 204, `got ${r.status}`);
-    check("allows the requesting origin", Boolean(r.headers.get("access-control-allow-origin")));
+    check(
+      "echoes the Framer origin",
+      r.headers.get("access-control-allow-origin") === FRAMER_ORIGIN,
+      `got ${r.headers.get("access-control-allow-origin")}`,
+    );
     check("allows POST", /POST/.test(r.headers.get("access-control-allow-methods") ?? ""));
     check("allows Content-Type", /content-type/i.test(r.headers.get("access-control-allow-headers") ?? ""));
+    check("varies on Origin", /origin/i.test(r.headers.get("vary") ?? ""));
   }
   {
-    const r = await fetch(`${BASE}/api/scan`, { method: "POST", headers: { origin: "https://example.framer.website", "content-type": "text/plain" }, body: "x" });
-    check("error responses also carry CORS headers", Boolean(r.headers.get("access-control-allow-origin")));
+    const r = await fetch(`${BASE}/api/scan`, { method: "POST", headers: { origin: FRAMER_ORIGIN, "content-type": "text/plain" }, body: "x" });
+    check("error responses also carry CORS headers", r.headers.get("access-control-allow-origin") === FRAMER_ORIGIN);
+  }
+  // The allowlist is exact-match: no wildcard, no *.framer.app suffix. An
+  // unlisted origin must get NO allow-origin header, not "*".
+  for (const origin of [UNLISTED_ORIGIN, "https://example.framer.website"]) {
+    const r = await fetch(`${BASE}/api/scan`, {
+      method: "OPTIONS",
+      headers: { origin, "access-control-request-method": "POST" },
+    });
+    check(
+      `unlisted origin ${origin} gets no allow-origin header`,
+      r.headers.get("access-control-allow-origin") === null,
+      `got ${r.headers.get("access-control-allow-origin")}`,
+    );
   }
 
   section("Request guards");
@@ -193,18 +248,18 @@ try {
     const b = await r.json();
     check("missing key -> 500 server_misconfigured", r.status === 500 && b.error?.code === "server_misconfigured", `${r.status} ${b.error?.code}`);
     check("the error tells the deployer to redeploy", /redeploy/i.test(b.error?.message ?? ""));
-    check("the error never contains a key value", !/sk-ant-/i.test(JSON.stringify(b)));
+    check("the error never contains a key value", !/sk-or-/i.test(JSON.stringify(b)));
   }
 
   section("Live two-pass vision call");
   if (!hasKey) {
-    console.log("  SKIPPED — ANTHROPIC_API_KEY is not set in this environment.");
+    console.log("  SKIPPED — OPENROUTER_API_KEY is not set in this environment.");
     console.log("  This is the ONLY check that the model call actually works.");
     console.log("  Whoever holds the key should run:");
-    console.log("    npm run build && ANTHROPIC_API_KEY=... npm run smoke");
+    console.log("    npm run build && OPENROUTER_API_KEY=... npm run smoke -- --runs 3");
   } else {
     console.log(`  image: ${imagePath}`);
-    await runScan(BASE);
+    await runScanRepeatedly(BASE);
   }
 } finally {
   try {

@@ -221,3 +221,41 @@ test("variety rollup covers every category", () => {
   const counts = countQualifyingVarieties([]);
   assert.deepEqual(counts, { dairy: 0, grains: 0, protein: 0, produce: 0 });
 });
+
+// ---------------------------------------------------------------------------
+// CORS — exact-match allowlist
+// ---------------------------------------------------------------------------
+test("CORS: only listed origins are echoed back", async (t) => {
+  await t.test("the published Framer site and localhost are allowed", () => {
+    for (const origin of rules.ALLOWED_ORIGINS) {
+      assert.equal(rules.resolveAllowedOrigin(origin), origin);
+      assert.equal(rules.corsHeaders(origin)["Access-Control-Allow-Origin"], origin);
+    }
+    assert.ok(rules.ALLOWED_ORIGINS.includes(rules.FRAMER_SITE_ORIGIN));
+  });
+
+  await t.test("no wildcard, and no header at all for an unlisted origin", () => {
+    const unlisted = [
+      "https://evil.example",
+      // Suffix matching used to let any Framer project through.
+      "https://example.framer.website",
+      "https://someone-else.framer.app",
+      // Near-misses on the real site.
+      "http://dark-role-914680.framer.app",
+      "https://dark-role-914680.framer.app.evil.example",
+      "https://dark-role-914680.framer.app/",
+      null,
+    ];
+    for (const origin of unlisted) {
+      assert.equal(rules.resolveAllowedOrigin(origin), null, String(origin));
+      const headers = rules.corsHeaders(origin);
+      assert.ok(
+        !("Access-Control-Allow-Origin" in headers),
+        `${origin} must get no allow-origin header`,
+      );
+      // The rest of the preflight answer is still well-formed.
+      assert.match(headers["Access-Control-Allow-Methods"], /POST/);
+      assert.match(headers.Vary, /Origin/);
+    }
+  });
+});
