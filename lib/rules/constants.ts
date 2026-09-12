@@ -192,21 +192,20 @@ export const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions
 /**
  * The vision model, as an OpenRouter model id. Both passes use it.
  *
- * Nemotron accepts image input and supports tools / tool_choice, but NOT
- * `response_format`. So the pipeline does not ask for structured outputs — it
- * forces a single function call per pass and reads the arguments (see
- * lib/vision/pipeline.ts). Sending `response_format` with
- * `provider.require_parameters` would be rejected before inference.
+ * Nemotron accepts image input and tools, but NOT `response_format`. Its sole
+ * live provider currently rejects every explicit `tool_choice` value, so the
+ * pipeline declares one function and fails closed unless the response calls it
+ * exactly once with schema-valid arguments (see lib/vision/pipeline.ts).
  *
- * A replacement model must therefore support image input AND forced tool
- * calling. Swapping is a one-line change here.
+ * A replacement model must therefore support image input and usable tools.
+ * Re-run the repeated live smoke test whenever this value changes.
  */
 export const MODEL = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free";
 export const MAX_TOKENS = 16_000;
 
 /**
- * Names of the single function each pass is forced to call. They are part of
- * the request AND the response contract: a tool call under any other name is
+ * Names of the single function each pass declares. They are part of the
+ * request AND the response contract: a tool call under any other name is
  * rejected rather than parsed.
  */
 export const EXTRACT_TOOL_NAME = "submit_extraction";

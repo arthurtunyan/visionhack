@@ -1,0 +1,44 @@
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.risksHead {
+  margin-bottom: 44px;
+}
+
+.risks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.riskCard {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 30px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.riskNum {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--blue);
+  font-variant-numeric: tabular-nums;
+}
+.riskTitle {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 900px) {
+  .risks {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+}

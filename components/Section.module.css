@@ -1,0 +1,37 @@
+.section {
+  padding: var(--section-y) var(--gutter);
+  position: relative;
+}
+
+.section[data-ground="paper"] {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.section[data-ground="tint"] {
+  background: var(--tint);
+  color: var(--ink);
+}
+
+.section[data-ground="coal"] {
+  background: var(--coal);
+  color: var(--paper);
+}
+
+.inner {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 52px 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 44px 20px;
+  }
+}
