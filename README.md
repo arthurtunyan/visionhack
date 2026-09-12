@@ -42,23 +42,31 @@ please don't grow it into a UI.
 
    ```bash
    npm install
-   cp .env.example .env.local   # then fill in ANTHROPIC_API_KEY
+   cp .env.example .env.local   # then fill in OPENROUTER_API_KEY
    npm run dev
    ```
 
-`ANTHROPIC_API_KEY` is **server-side only**. Never prefix it with
+`OPENROUTER_API_KEY` is **server-side only**. Never prefix it with
 `NEXT_PUBLIC_` and never import it into a client component.
 
 ### Deploying
 
-The env var name is exactly **`ANTHROPIC_API_KEY`**.
+The env var name is exactly **`OPENROUTER_API_KEY`** (an `sk-or-...` key from
+[openrouter.ai](https://openrouter.ai)). If a deployment still carries
+`ANTHROPIC_API_KEY`, delete it — nothing reads it any more.
 
 > Set it in the Vercel **project settings**, then **REDEPLOY**. Environment
 > variable changes do not apply to existing deployments — without a redeploy
 > the route keeps returning the "not configured" 500.
 
 If the key is missing the route returns a 500 whose message says exactly that,
-so the failure is self-explanatory rather than a generic crash.
+so the failure is self-explanatory rather than a generic crash. A 500 whose
+message mentions credits means the OpenRouter account needs topping up — that
+one does not need a redeploy.
+
+**Deployed API URL:** _not yet deployed — fill this in after the first Vercel
+deploy._ The Framer site at <https://dark-role-914680.framer.app> posts to
+`<deployed-url>/api/scan`; that origin is on the CORS allowlist.
 
 ## Commands
 
@@ -73,15 +81,16 @@ npm run smoke      # end-to-end check (run `npm run build` first)
 
 ### Verifying it works
 
-`npm test` covers the four scoring rules and the rule engine (scorecard and
-fix list) as pure functions. No key, no network, runs in CI.
+`npm test` covers the four scoring rules, the rule engine (scorecard and fix
+list), the CORS allowlist, and the OpenRouter request shape and error mapping
+(against a stubbed `fetch`). No key, no network, runs in CI.
 
 `npm run smoke` boots the production build and checks the CORS preflight and
 every request guard. **The live vision call only runs when the key is present**
 — whoever holds it should run:
 
 ```bash
-npm run build && ANTHROPIC_API_KEY=... npm run smoke
+npm run build && OPENROUTER_API_KEY=... npm run smoke
 ```
 
 Other forms:

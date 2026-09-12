@@ -6,7 +6,7 @@
  *   npm run smoke -- --url https://app.vercel.app  hit a deployed URL
  *
  * Local runs boot the production build, exercise the CORS preflight and every
- * request guard, then — only if ANTHROPIC_API_KEY is present — run the real
+ * request guard, then — only if OPENROUTER_API_KEY is present — run the real
  * two-pass vision call and pretty-print the JSON.
  *
  * The key is used, never printed. Nothing here echoes its value.
@@ -34,7 +34,11 @@ if (!existsSync(imagePath)) {
   process.exit(1);
 }
 
-const hasKey = Boolean(process.env.ANTHROPIC_API_KEY);
+const hasKey = Boolean(process.env.OPENROUTER_API_KEY);
+
+// Must match ALLOWED_ORIGINS in lib/rules/constants.ts.
+const FRAMER_ORIGIN = "https://dark-role-914680.framer.app";
+const UNLISTED_ORIGIN = "https://evil.example";
 let passed = 0;
 let failed = 0;
 
@@ -144,16 +148,34 @@ try {
   {
     const r = await fetch(`${BASE}/api/scan`, {
       method: "OPTIONS",
-      headers: { origin: "https://example.framer.website", "access-control-request-method": "POST" },
+      headers: { origin: FRAMER_ORIGIN, "access-control-request-method": "POST" },
     });
     check("OPTIONS returns 204", r.status === 204, `got ${r.status}`);
-    check("allows the requesting origin", Boolean(r.headers.get("access-control-allow-origin")));
+    check(
+      "echoes the Framer origin",
+      r.headers.get("access-control-allow-origin") === FRAMER_ORIGIN,
+      `got ${r.headers.get("access-control-allow-origin")}`,
+    );
     check("allows POST", /POST/.test(r.headers.get("access-control-allow-methods") ?? ""));
     check("allows Content-Type", /content-type/i.test(r.headers.get("access-control-allow-headers") ?? ""));
+    check("varies on Origin", /origin/i.test(r.headers.get("vary") ?? ""));
   }
   {
-    const r = await fetch(`${BASE}/api/scan`, { method: "POST", headers: { origin: "https://example.framer.website", "content-type": "text/plain" }, body: "x" });
-    check("error responses also carry CORS headers", Boolean(r.headers.get("access-control-allow-origin")));
+    const r = await fetch(`${BASE}/api/scan`, { method: "POST", headers: { origin: FRAMER_ORIGIN, "content-type": "text/plain" }, body: "x" });
+    check("error responses also carry CORS headers", r.headers.get("access-control-allow-origin") === FRAMER_ORIGIN);
+  }
+  // The allowlist is exact-match: no wildcard, no *.framer.app suffix. An
+  // unlisted origin must get NO allow-origin header, not "*".
+  for (const origin of [UNLISTED_ORIGIN, "https://example.framer.website"]) {
+    const r = await fetch(`${BASE}/api/scan`, {
+      method: "OPTIONS",
+      headers: { origin, "access-control-request-method": "POST" },
+    });
+    check(
+      `unlisted origin ${origin} gets no allow-origin header`,
+      r.headers.get("access-control-allow-origin") === null,
+      `got ${r.headers.get("access-control-allow-origin")}`,
+    );
   }
 
   section("Request guards");
@@ -187,15 +209,15 @@ try {
     const b = await r.json();
     check("missing key -> 500 server_misconfigured", r.status === 500 && b.error?.code === "server_misconfigured", `${r.status} ${b.error?.code}`);
     check("the error tells the deployer to redeploy", /redeploy/i.test(b.error?.message ?? ""));
-    check("the error never contains a key value", !/sk-ant-/i.test(JSON.stringify(b)));
+    check("the error never contains a key value", !/sk-or-/i.test(JSON.stringify(b)));
   }
 
   section("Live two-pass vision call");
   if (!hasKey) {
-    console.log("  SKIPPED — ANTHROPIC_API_KEY is not set in this environment.");
+    console.log("  SKIPPED — OPENROUTER_API_KEY is not set in this environment.");
     console.log("  This is the ONLY check that the model call actually works.");
     console.log("  Whoever holds the key should run:");
-    console.log("    npm run build && ANTHROPIC_API_KEY=... npm run smoke");
+    console.log("    npm run build && OPENROUTER_API_KEY=... npm run smoke");
   } else {
     console.log(`  image: ${imagePath}`);
     await runScan(BASE);

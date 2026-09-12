@@ -2,7 +2,7 @@
  * Public response contract for POST /api/scan.
  *
  * Role A (frontend) and Role C (rule engine) should import from this file
- * rather than re-deriving shapes. Nothing here depends on the Anthropic SDK.
+ * rather than re-deriving shapes. Nothing here depends on the model provider.
  *
  * THE C BOUNDARY: classified items and qualifying-variety counts come from
  * this route's pipeline. The pass/fail verdict comes from Role C's rule engine

@@ -13,6 +13,9 @@
     "lib/rules/constants.ts",
     "lib/rules/partition.ts",
     "lib/rule-engine.ts",
-    "lib/mock-data.ts"
+    "lib/mock-data.ts",
+    "lib/vision/pipeline.ts",
+    "lib/vision/prompts.ts",
+    "lib/vision/schemas.ts"
   ]
 }

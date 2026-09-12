@@ -147,22 +147,40 @@ exactly the overcounting risk the filter exists to prevent.
 | 413 | `payload_too_large` | Over 8 MB |
 | 415 | `unsupported_media_type` | Not jpeg/png/webp/gif |
 | 422 | `model_refused` | The model declined the image |
-| 429 | `rate_limited` | Anthropic rate limit |
-| 500 | `server_misconfigured` | `ANTHROPIC_API_KEY` missing or rejected — the message names the fix (set it in Vercel settings, then redeploy) |
-| 502 | `upstream_error` / `unparseable_model_output` | API error, or output failed schema validation |
-| 504 | `upstream_unreachable` | Could not reach the API |
+| 429 | `rate_limited` | OpenRouter rate limit |
+| 500 | `server_misconfigured` | `OPENROUTER_API_KEY` missing or rejected (401/403), or the OpenRouter account is out of credits (402) — the message names the fix |
+| 502 | `upstream_error` / `unparseable_model_output` | OpenRouter error or no provider for the model, or output was not valid JSON / failed schema validation |
+| 504 | `upstream_unreachable` | Could not reach OpenRouter, or it timed out |
 
 ## How it works
 
 Two passes, deliberately not one:
 
-1. **extract** (low effort) — transcribe printed lines verbatim. No
+1. **extract** (temperature 0) — transcribe printed lines verbatim. No
    interpretation. Invoices are printed text, so this is near-deterministic.
-2. **classify** (default effort) — categorize, name the variety, size the
+2. **classify** (default temperature) — categorize, name the variety, size the
    pack, flag perishability, score confidence.
 
 Splitting them stops transcription errors from being laundered into
 confident-looking classifications.
+
+Both passes go to **OpenRouter**'s OpenAI-compatible
+`POST https://openrouter.ai/api/v1/chat/completions` over plain `fetch` — no
+vendor SDK. The model id lives in one constant (`MODEL`, currently
+`qwen/qwen3-vl-32b-instruct`) so swapping it is a one-line change.
+
+Pass 1 sends the image as an `image_url` content part holding a
+`data:<mediaType>;base64,...` URL, placed before the text part.
+
+Both passes request `response_format: { type: "json_schema", json_schema: {
+name, strict: true, schema } }`, where `schema` is generated from the Zod
+schemas in `lib/vision/schemas.ts` via `z.toJSONSchema`. `provider: {
+require_parameters: true }` keeps OpenRouter from routing to a provider that
+would silently ignore `response_format`.
+
+The model's JSON is **not** trusted: it is parsed and then re-validated with the
+same Zod schema. Anything that does not match is a `502
+unparseable_model_output`, never a partially-filled scorecard.
 
 Tunables (the four scoring rules, confidence threshold, pack math, size cap,
 CORS origins, model) all live in
@@ -171,6 +189,29 @@ numbers in the handler.
 
 ## CORS
 
-The allowed-origin list is in `lib/rules/constants.ts` and currently falls back
-to `*` for the hackathon. **Tighten it** once the Framer site has its final
-domain — drop the fallback and keep the explicit list.
+`ALLOWED_ORIGINS` in [`lib/rules/constants.ts`](../lib/rules/constants.ts) is an
+**exact-match allowlist**:
+
+| Origin | Why |
+|---|---|
+| `https://dark-role-914680.framer.app` | the published Framer site |
+| `http://localhost:3000` | local development |
+
+There is no wildcard and no suffix matching. An origin that is not on the list
+gets **no `Access-Control-Allow-Origin` header at all**, so the browser blocks
+the response; the header is never `*`. Every response — errors included —
+carries `Vary: Origin`, so a cache cannot serve one origin's response to
+another.
+
+This replaced a rule that allowed any `*.framer.app` / `*.framer.website`
+subdomain and fell back to `*` for everything else, i.e. anyone's Framer
+project, and in practice any site at all.
+
+**Known gap — the Framer editor.** Framer may serve the *canvas preview* from a
+different origin than the published site. That origin is deliberately not on the
+list because nobody has observed it first-hand, and guessing a shared Framer
+domain would re-open the hole above. If `/api/scan` is CORS-blocked while
+working inside the editor: open devtools → Network → the blocked request, copy
+the exact `Origin` request header, and add that string to `ALLOWED_ORIGINS` (and
+to `FRAMER_ORIGIN`'s siblings in `scripts/smoke-scan.mjs` if you want it
+covered by the smoke test). The published site is unaffected either way.
