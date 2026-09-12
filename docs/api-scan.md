@@ -220,10 +220,10 @@ line by exact count, order, and text. Quantity and pack count are replaced with
 values parsed conservatively from the transcription: explicit counts such as
 `24 ct`, `16 / 3 #`, `24 x 12 OZ`, and `6/1 GAL` are accepted; weights, grades,
 and container-only descriptions such as `40 #`, `4x4`, `pint`, `bushel`, and
-`box` remain unknown and are excluded. A tight commodity check also corrects
-obvious unpreserved produce to `fresh` without changing canned, frozen, dried,
-or prepared foods. This prevents a schema-valid model guess from inflating the
-scorecard.
+`box` remain unknown and are excluded. A complete-description allowlist also
+corrects recognized whole produce to `fresh`; unknown or prepared descriptions
+preserve the model's storage classification instead of being guessed. This
+prevents a schema-valid model guess from inflating the scorecard.
 
 Tunables (the four scoring rules, confidence threshold, pack math, size cap,
 CORS origins, model) all live in
