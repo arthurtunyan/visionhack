@@ -143,6 +143,58 @@ other doesn't exist.
 
 ---
 
+## Beyond the 12 slots
+
+`brand/site/features/` and `brand/site/sections/` hold mocks of every feature and
+every part of the page, for when the site grows past its current slots. They all
+show **the same store on the same day** — Corner Market #17, passing dairy,
+grains and protein but short on produce because two produce lines were priced by
+weight and Ledger refused to guess a unit count. Mixing in a mock from a
+different scenario will contradict the others, so keep the story straight.
+
+**Features** (1200x800, mobile 640x1000)
+
+| File | Shows |
+|---|---|
+| `f01-scan-capture.png` | Upload / photograph an invoice |
+| `f02-scan-result.png` | Counted line items with category and units |
+| `f03-not-counted.png` | Held-back lines and why — the safety argument |
+| `f04-staple-categories.png` | Four categories against the 3-variety rule |
+| `f05-scorecard.png` | Pass / fail per category |
+| `f06-fix-list.png` | Ranked list of what blocks you |
+| `f07-alerts.png` | Alert feed |
+| `f08-scan-history.png` | Audit trail of past scans |
+| `f09-staff-cards.png` | Food handler card tracking |
+| `f10-multi-store.png` | Group view across locations |
+| `f11-mobile-scan.png` | Phone result screen |
+| `f12-licenses.png` | All tracked licences |
+
+**Page sections** (1600 wide)
+
+| File | Section |
+|---|---|
+| `s01-nav.png` | Header / nav |
+| `s02-hero.png` | Hero |
+| `s03-how-it-works.png` | Three steps |
+| `s04-features.png` | Why Ledger — six features |
+| `s05-social-proof.png` | Quote + stats |
+| `s06-pricing.png` | Three plans |
+| `s07-faq.png` | Five questions |
+| `s08-cta.png` | Closing CTA (black band) |
+| `s09-footer.png` | Footer |
+
+Rebuild any of them:
+
+```bash
+python3 brand/tools/build-mocks.py              # everything
+python3 brand/tools/build-mocks.py features     # or: sections
+python3 brand/tools/build-mocks.py f03 s06      # individual ids
+```
+
+Copy in these sections is written to be defensible: the FAQ and footer both say
+Ledger is not official USDA guidance and that authorization decisions rest with
+the agency. Keep that if you reword anything.
+
 ## If you're pointing Claude at this
 
 The brand kit is self-describing: start from `brand/README.md` and
