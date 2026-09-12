@@ -1,0 +1,155 @@
+.mock {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 420px;
+  text-align: left;
+}
+
+.sidebar {
+  border-right: 1px solid var(--line);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  background: var(--wash);
+}
+.brandRow {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 16px;
+}
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nav span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mute);
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+.nav span[data-active="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(16, 20, 32, 0.04);
+}
+.sideStat {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.sideStatLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.sideStatValue {
+  font-weight: 600;
+  font-size: 15px;
+}
+.sideStatMeta {
+  font-size: 13px;
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.main {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  margin-bottom: 6px;
+}
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.ringCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.ringNote {
+  font-size: 13px;
+  color: var(--mute);
+  text-align: center;
+  max-width: 150px;
+}
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.fixRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--bad) 30%, var(--line));
+  border-radius: 11px;
+  padding: 14px 16px;
+}
+.fixDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bad);
+  flex: none;
+}
+.fixText {
+  font-weight: 600;
+  font-size: 15px;
+}
+.fixMeta {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bad);
+}
+
+@media (max-width: 720px) {
+  .mock {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    display: none;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .ringCard {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+  .ringNote {
+    text-align: left;
+  }
+}

@@ -1,0 +1,26 @@
+.prose {
+  max-width: 680px;
+}
+.prose h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 44px 0 14px;
+}
+.prose h2:first-child {
+  margin-top: 0;
+}
+.prose p {
+  color: var(--mute);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.updated {
+  font-size: 14px;
+  color: var(--mute);
+  margin-bottom: 40px;
+}

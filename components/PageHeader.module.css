@@ -1,0 +1,25 @@
+.head {
+  padding-top: 56px;
+  max-width: 900px;
+}
+.eyebrow {
+  color: var(--blue);
+  margin-bottom: 22px;
+}
+.title {
+  margin-bottom: 26px;
+  text-wrap: balance;
+}
+.intro {
+  color: var(--mute);
+  max-width: 640px;
+}
+.extra {
+  margin-top: 34px;
+}
+
+@media (max-width: 768px) {
+  .head {
+    padding-top: 24px;
+  }
+}
