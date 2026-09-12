@@ -26,17 +26,17 @@ function PermitVisual() {
 function ScoreVisual() {
   return (
     <div className={styles.howVisual}>
-      <CategoryBar name="Dairy" count={4} index={0} />
-      <CategoryBar name="Grains" count={3} index={1} />
-      <CategoryBar name="Protein" count={3} index={2} />
-      <CategoryBar name="Produce" count={1} index={3} />
+      <CategoryBar name="Dairy" count={5} index={0} />
+      <CategoryBar name="Grains" count={7} index={1} />
+      <CategoryBar name="Protein" count={7} index={2} />
+      <CategoryBar name="Produce" count={7} index={3} />
     </div>
   );
 }
 
 function FixVisual() {
   const rows = [
-    { label: "Add 2 produce varieties", tone: "bad" as const, meta: "Blocks review" },
+    { label: "Add 2 dairy varieties", tone: "bad" as const, meta: "Blocks review" },
     { label: "Renew health permit", tone: "bad" as const, meta: "Overdue" },
     { label: "WIC price list", tone: "warn" as const, meta: "9 days" },
   ];

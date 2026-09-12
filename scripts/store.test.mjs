@@ -236,3 +236,32 @@ test("every obligation has at most one status-driving field", () => {
     assert.ok(driving.length <= 1, `${o.key} has ${driving.length} status fields`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Display targets. These guard a regression that shipped: the marketing page
+// rendered "4 of 3" varieties because CategoryBar defaulted to 3 while the
+// scanner scored against 7.
+test("the UI's required-variety target is the rule engine's, not a retyped 3", () => {
+  const ui = require(resolve(root, ".smoke-build/ui-copy.js"));
+  const engine = require(resolve(root, ".smoke-build/rule-engine.js"));
+  assert.equal(ui.REQUIRED_VARIETIES, engine.REQUIRED_VARIETIES_PER_CATEGORY);
+  assert.equal(ui.REQUIRED_UNITS, engine.REQUIRED_UNITS_PER_CATEGORY);
+  assert.notEqual(ui.REQUIRED_VARIETIES, 3);
+});
+
+test("the sample scorecard differs by locale, so the language toggle has something to show", () => {
+  const sample = require(resolve(root, ".smoke-build/sample-data.js"));
+  const en = sample.sampleScorecard("en");
+  const es = sample.sampleScorecard("es");
+  assert.notDeepEqual(
+    en.categories.map((c) => c.label),
+    es.categories.map((c) => c.label),
+  );
+  // Switching language must not change any number.
+  assert.equal(en.totalUnits, es.totalUnits);
+  assert.equal(en.overallStatus, es.overallStatus);
+  assert.deepEqual(
+    en.categories.map((c) => c.varietiesFound),
+    es.categories.map((c) => c.varietiesFound),
+  );
+});

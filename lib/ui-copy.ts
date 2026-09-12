@@ -4,6 +4,10 @@
  * API's `scorecard` / `scorecardEs`; this file only covers the surrounding UI.
  */
 import type { Locale } from "./scorecard-copy";
+import {
+  REQUIRED_UNITS_PER_CATEGORY,
+  REQUIRED_VARIETIES_PER_CATEGORY,
+} from "./rule-engine";
 
 export type { Locale };
 
@@ -104,6 +108,10 @@ export const UI_COPY: Record<Locale, UiCopy> = {
   },
 };
 
-/** Category-level pass targets, mirrored from the rule engine for display. */
-export const REQUIRED_VARIETIES = 7;
-export const REQUIRED_UNITS = 21;
+/**
+ * Category-level pass targets, re-exported from the rule engine rather than
+ * retyped. Mirroring these by hand is how the marketing page ended up
+ * advertising a 3-variety rule while the scanner scored against 7.
+ */
+export const REQUIRED_VARIETIES = REQUIRED_VARIETIES_PER_CATEGORY;
+export const REQUIRED_UNITS = REQUIRED_UNITS_PER_CATEGORY;

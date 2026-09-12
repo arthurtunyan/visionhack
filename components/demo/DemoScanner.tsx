@@ -19,7 +19,10 @@ type Status = "idle" | "scanning" | "done" | "error";
 export function DemoScanner() {
   const [locale, setLocale] = useState<Locale>("en");
   const [status, setStatus] = useState<Status>("idle");
-  const [result, setResult] = useState<ScanResult | null>(null);
+  // Both languages come back on a single scan, so keep both and pick at render
+  // time. Storing only the active one is why switching language used to do
+  // nothing after a real scan.
+  const [scan, setScan] = useState<{ en: ScanResult; es: ScanResult } | null>(null);
   const [isSample, setIsSample] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [storeName, setStoreName] = useState("");
@@ -46,14 +49,14 @@ export function DemoScanner() {
           setStatus("error");
           return;
         }
-        setResult(locale === "es" ? data.scorecardEs : data.scorecard);
+        setScan({ en: data.scorecard, es: data.scorecardEs });
         setStatus("done");
       } catch {
         setErrorMsg(t.tryError);
         setStatus("error");
       }
     },
-    [locale, storeName, t.tryError],
+    [storeName, t.tryError],
   );
 
   const onFile = (files: FileList | null) => {
@@ -62,22 +65,22 @@ export function DemoScanner() {
   };
 
   const loadSample = () => {
-    setResult(sampleScorecard(locale));
+    setScan({ en: sampleScorecard("en"), es: sampleScorecard("es") });
     setIsSample(true);
     setStatus("done");
   };
 
   const reset = () => {
     setStatus("idle");
-    setResult(null);
+    setScan(null);
     setIsSample(false);
     setErrorMsg("");
   };
 
-  const switchLocale = (next: Locale) => {
-    setLocale(next);
-    if (isSample) setResult(sampleScorecard(next));
-  };
+  // Purely a display switch: no refetch, and nothing to re-derive.
+  const switchLocale = (next: Locale) => setLocale(next);
+
+  const result = scan ? (locale === "es" ? scan.es : scan.en) : null;
 
   return (
     <div className={styles.wrap}>

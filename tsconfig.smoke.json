@@ -11,6 +11,8 @@
   },
   "include": [
     "lib/compliance.ts",
+    "lib/ui-copy.ts",
+    "lib/sample-data.ts",
     "lib/store.ts",
     "lib/rules/constants.ts",
     "lib/rules/partition.ts",
