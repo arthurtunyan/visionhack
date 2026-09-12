@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/*
+ * Ledger dashboard theme. Brand rule: two colours only — black #000000 and
+ * blue #1B4DFF — on paper white. Blue is the accent (brackets/verdicts) and is
+ * never used as a large fill. Grays are neutral scaffolding only.
+ */
+@theme inline {
+  --color-paper: #ffffff;
+  --color-ink: #000000;
+  --color-blue: #1b4dff;
+
+  --color-background: #ffffff;
+  --color-foreground: #000000;
+  --color-primary: #1b4dff;
+  --color-primary-foreground: #ffffff;
+
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #6b6b6b;
+  --color-border: #e4e4e7;
+  --color-hairline: #d4d4d8;
+
+  --color-pass: #1b4dff;
+  --color-fail: #000000;
+
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --radius: 0px;
+}
+
+html {
+  background-color: var(--color-paper);
+}
+
+body {
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular figures everywhere numbers are compared in a column. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
