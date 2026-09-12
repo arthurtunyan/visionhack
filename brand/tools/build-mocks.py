@@ -420,39 +420,80 @@ def s01_nav():
 
 
 def s02_hero():
+    """Centred hero in the Omrix pattern: grid ground, eyebrow pill, large
+    centred display, two buttons, a trust row, then the product shot below on a
+    soft glow. Our palette and copy, their structure."""
     body = mini_app(f"""
 {app_header("Corner Market #17", "Valley Fresh invoice VF-88213 &middot; scanned 2 minutes ago",
             pill("bad", "Produce short"))}
 <div style="display:flex;gap:14px">
- <div class=card style="flex:0 0 168px;padding:16px;display:flex;align-items:center;
-   justify-content:center">{ring(75, 96, BAD, "3 of 4")}</div>
- <div class=card style="flex:1;padding:18px 20px;display:flex;flex-direction:column;
-   justify-content:center;gap:13px">
+ <div class=card style="flex:0 0 180px;padding:18px;display:flex;align-items:center;
+   justify-content:center">{ring(75, 104, BAD, "3 of 4")}</div>
+ <div class=card style="flex:1;padding:18px 22px;display:flex;flex-direction:column;
+   justify-content:center;gap:14px">
   {"".join(f'<div>{cat_bar(n, c)}</div>' for n, c, _ in CATEGORIES)}</div></div>
-<div class=card style="padding:14px 18px;display:flex;align-items:center;gap:12px;
+<div class=card style="padding:15px 20px;display:flex;align-items:center;gap:12px;
   background:{WASH};border:none">
- <span class=h2 style="font-size:13px">4 lines held back as unreadable</span>
- <span class=mute style="font-size:12px;font-weight:500;flex:1">
-  Roma tomatoes and yellow onions were priced by weight.</span></div>""", "Dashboard", 430)
+ <span class=h2 style="font-size:14px">4 lines held back as unreadable</span>
+ <span class=mute style="font-size:13px;font-weight:500;flex:1">
+  Roma tomatoes and yellow onions were priced by weight.</span>
+ <span class=h2 style="font-size:13px;color:{BLUE}">Review</span></div>""", "Dashboard", 560)
+
+    def trust(icon, label):
+        return (f'<div style="display:flex;align-items:center;gap:9px">'
+                f'<span style="font-size:15px;color:{MUTE}">{icon}</span>'
+                f'<span style="font-size:16px;font-weight:500;color:{MUTE}">{label}</span></div>')
+
     return page(f"""
-<div style="width:{SW}px;height:820px;display:flex;align-items:center;overflow:hidden;
-  background:linear-gradient(165deg,{PAPER} 40%,{TINT} 100%)">
- <div style="flex:0 0 720px;padding-left:{PAD}px">
-  <div style="font-size:15px;font-weight:600;color:{MUTE};letter-spacing:-.01em">
-   Grocery &middot; auto parts &middot; liquor &middot; pharmacy &middot; hardware</div>
-  <div class=h1 style="font-size:76px;margin-top:20px;letter-spacing:-.045em">
-   Every permit your<br>store has to hold,<br>in one place.</div>
-  <div class=body-lg style="margin-top:26px">
+<div style="width:{SW}px;height:1240px;position:relative;overflow:hidden;background:{PAPER}">
+
+ <!-- faint grid ground, fading out down the page -->
+ <div style="position:absolute;inset:0;
+   background-image:linear-gradient(to right,{LINE} 1px,transparent 1px),
+     linear-gradient(to bottom,{LINE} 1px,transparent 1px);
+   background-size:88px 88px;opacity:.55;
+   -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 32%,transparent 72%)"></div>
+
+ <!-- soft blue ambient behind the product shot -->
+ <div style="position:absolute;left:50%;top:660px;width:1500px;height:620px;
+   transform:translateX(-50%);
+   background:radial-gradient(ellipse at center,rgba(27,77,255,.13) 0%,
+     rgba(27,77,255,.05) 42%,transparent 70%)"></div>
+
+ <div style="position:relative;padding:92px {PAD}px 0;display:flex;
+   flex-direction:column;align-items:center;text-align:center">
+
+  <div style="display:inline-flex;align-items:center;gap:10px;background:{PAPER};
+    border:1px solid {LINE};border-radius:999px;padding:11px 22px;
+    box-shadow:0 1px 2px rgba(16,20,32,.05),0 6px 18px rgba(16,20,32,.05)">
+   {mark(19)}
+   <span style="font-size:13px;font-weight:700;letter-spacing:.09em;
+     text-transform:uppercase;color:{INK}">18 programmes &middot; federal, state and local</span>
+  </div>
+
+  <div class=h1 style="font-size:88px;margin-top:34px;letter-spacing:-.045em;
+    line-height:1.04;max-width:1280px">
+   Every permit your store holds.<br>One place. One calendar.</div>
+
+  <div style="font-size:21px;font-weight:500;line-height:1.55;color:{MUTE};
+    margin-top:26px;max-width:760px">
    Ledger tracks the licences, filings and stocking rules a small retailer is
    judged on, and tells you which one is about to fail.</div>
-  <div style="display:flex;gap:14px;margin-top:34px;align-items:center">
-   <span class=btn style="font-size:17px;padding:18px 30px">Start free</span>
-   <span style="font-size:17px;font-weight:600">See a sample scan &rarr;</span></div>
-  <div style="font-size:15px;color:{MUTE};font-weight:500;margin-top:22px">
-   No integration. Works from a phone photo.</div>
+
+  <div style="display:flex;gap:14px;margin-top:36px">
+   <span class=btn style="font-size:17px;padding:17px 32px">Start Free</span>
+   <span style="background:{COAL};color:{PAPER};border-radius:11px;padding:17px 32px;
+     font-size:17px;font-weight:600">See a Sample Scan</span></div>
+
+  <div style="display:flex;gap:42px;margin-top:30px">
+   {trust("&#9679;", "No integration")}
+   {trust("&#9679;", "Works from a phone photo")}
+   {trust("&#9679;", "First store free")}</div>
+
+  <!-- product shot, centred, bleeding off the bottom -->
+  <div style="margin-top:54px;width:1240px">{window(body)}</div>
  </div>
- <div style="flex:1;margin-left:30px;margin-right:-220px">{window(body)}</div>
-</div>""", SW, 820)
+</div>""", SW, 1240)
 
 
 def s03_strip():
@@ -724,7 +765,7 @@ def s12_footer():
 
 SECTIONS = {
     "s01-nav.png": (s01_nav, SW, 104),
-    "s02-hero.png": (s02_hero, SW, 820),
+    "s02-hero.png": (s02_hero, SW, 1240),
     "s03-coverage-strip.png": (s03_strip, SW, 290),
     "s04-industries.png": (s04_industries, SW, 700),
     "s05-how-it-works.png": (s05_how, SW, 1040),
