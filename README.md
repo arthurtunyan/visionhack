@@ -14,8 +14,8 @@ This repository is connected to [GitHub](https://github.com/arthurtunyan/visionh
 
 ## Project status
 
-The backend vision pipeline (Role B) is implemented. The frontend and the
-rule engine are not.
+The backend vision pipeline (Role B) and the rule engine (Role C) are
+implemented. The frontend is not.
 
 **Stack:** Next.js (App Router) + TypeScript, deployed on Vercel. This repo is
 **API-only** — the interface lives on Framer and calls `/api/scan`
@@ -67,14 +67,14 @@ npm run dev        # dev server
 npm run build      # production build
 npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
-npm test           # scoring-rule unit tests — no server, no API key
+npm test           # scoring-rule and rule-engine tests — no server, no API key
 npm run smoke      # end-to-end check (run `npm run build` first)
 ```
 
 ### Verifying it works
 
-`npm test` covers the four scoring rules as pure functions. No key, no network,
-runs in CI.
+`npm test` covers the four scoring rules and the rule engine (scorecard and
+fix list) as pure functions. No key, no network, runs in CI.
 
 `npm run smoke` boots the production build and checks the CORS preflight and
 every request guard. **The live vision call only runs when the key is present**
@@ -102,7 +102,8 @@ curl -sS -X POST https://<app>.vercel.app/api/scan \
 
 `POST /api/scan` is documented in [docs/api-scan.md](docs/api-scan.md), including
 the request shape and the response TypeScript type for wiring up the Framer
-button.
+button. The response's `scorecard` is the pass/fail `ScanResult` built by the
+rule engine in [lib/rule-engine.ts](lib/rule-engine.ts).
 
 ## Contributing
 

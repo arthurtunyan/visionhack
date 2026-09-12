@@ -81,6 +81,12 @@ async function runScan(base) {
     );
     check("varietyCounts covers all four categories",
       body.varietyCounts && ["dairy", "grains", "protein", "produce"].every((c) => typeof body.varietyCounts[c] === "number"));
+    check(
+      "scorecard agrees with varietyCounts",
+      Array.isArray(body.scorecard?.categories) &&
+        body.scorecard.categories.length === 4 &&
+        body.scorecard.categories.every((c) => c.varietiesFound === body.varietyCounts[c.category]),
+    );
   }
   return body;
 }
