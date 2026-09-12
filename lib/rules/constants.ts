@@ -4,9 +4,9 @@
  * EVERYTHING the team may want to correct lives here — there are deliberately
  * no magic numbers in the route handler or the pipeline.
  *
- * The four scoring rules from the specifics doc are each quoted verbatim above
- * the constant or predicate that implements them, so a reader can check the
- * code against the rule without leaving this file.
+ * The four scoring rules from the specifics doc are documented above the
+ * constant or predicate that implements them, so a reader can check the code
+ * against the rule without leaving this file.
  */
 
 /** The only categories the scorecard (Role C) understands. */
@@ -31,24 +31,35 @@ export const MIN_COUNTED_CONFIDENCE = 0.75;
 // RULE 1 — accessory foods
 // ---------------------------------------------------------------------------
 /**
- * RULE (verbatim): "Butter and ALL jerky are ACCESSORY FOODS: they count for
- * NOTHING. Zero. Still classify and return them so they're visible, but they
- * contribute 0 stocking units and 0 toward any variety count."
+ * RULE: Butter other than peanut butter, and ALL jerky, are accessory foods:
+ * they count for nothing. Peanut butter is a countable protein.
  *
  * Enforced in code as well as in the pass-2 prompt, because the model drifts.
  *
- * ASSUMPTION: "butter" is matched as a bare word, which also catches nut
- * butters (peanut, almond). That is the undercounting direction — an accessory
- * contributes zero, so over-matching can only lower a score, never inflate it.
- * Narrow this if the team decides peanut butter should count as protein.
+ * Peanut butter is checked first so the general butter pattern cannot erase
+ * the explicit product decision that it counts as protein.
  */
+const PEANUT_BUTTER_PATTERN = /\bpeanut\s+butters?\b/i;
+
 export const ACCESSORY_FOOD_PATTERNS: readonly RegExp[] = [
   /\bbutters?\b/i,
   /\bjerky\b/i,
 ];
 
+export function isPeanutButter(...text: (string | null | undefined)[]): boolean {
+  return PEANUT_BUTTER_PATTERN.test(text.filter(Boolean).join(" "));
+}
+
+export function categoryForKnownFood(
+  category: Category,
+  ...text: (string | null | undefined)[]
+): Category {
+  return isPeanutButter(...text) ? "protein" : category;
+}
+
 export function isAccessoryFood(...text: (string | null | undefined)[]): boolean {
   const haystack = text.filter(Boolean).join(" ");
+  if (PEANUT_BUTTER_PATTERN.test(haystack)) return false;
   return ACCESSORY_FOOD_PATTERNS.some((re) => re.test(haystack));
 }
 
@@ -69,14 +80,14 @@ export function varietyQualifies(totalStockingUnits: number): boolean {
 // RULE 3 — perishable
 // ---------------------------------------------------------------------------
 /**
- * RULE (verbatim): "PERISHABLE means refrigerated or fresh."
- *
- * Note this replaces the earlier category-based guess. It is a literal reading:
- * ASSUMPTION: frozen is NOT perishable, because frozen is neither refrigerated
- * nor fresh. Flagged for the team — if frozen should count as perishable, add
- * it to this set and nothing else changes.
+ * RULE: Refrigerated, fresh, and frozen foods are perishable. Storage, rather
+ * than category, is the source of truth.
  */
-export const PERISHABLE_STORAGE_STATES: readonly StorageState[] = ["refrigerated", "fresh"];
+export const PERISHABLE_STORAGE_STATES: readonly StorageState[] = [
+  "refrigerated",
+  "fresh",
+  "frozen",
+];
 
 export function computePerishable(storage: StorageState): boolean {
   return PERISHABLE_STORAGE_STATES.includes(storage);
