@@ -25,8 +25,9 @@ used where it's a number:
    #FFFFFF, #F4F6FB, #F6F7F9, #E6E6E6, #1C202B, #6B6B6B, #9AA3B2, #B3261E,
    #8A5300?
 6. On a dark ground, did any blue come out as #1B4DFF instead of #5B82FF?
-7. Is the copy word-for-word from the spec, or did you rewrite any of it?
-8. Does the section ground match what the spec says (white / tint / coal)?
+7. Which logo file is used on each section, and does it match the ground?
+8. Is the copy word-for-word from the spec, or did you rewrite any of it?
+9. Does the section ground match what the spec says (white / tint / coal)?
 
 List every FAIL with what you'd change. Don't fix anything yet — show me first.
 ```
@@ -92,6 +93,22 @@ except the Ledger mark. Add a prefers-reduced-motion variant that disables all
 of it.
 ```
 
+**The logo looks dark / wrong on a section**
+
+```
+The logo is the wrong variant for that background. There are two and the
+correct one depends on the ground:
+  - On white or light grey (#FFFFFF, #F4F6FB): ledger-lockup.svg. Brackets blue
+    #1B4DFF, rows and the word "ledger" black.
+  - On dark (#0B0D12): ledger-lockup-inverse.svg. Brackets the lighter blue
+    #5B82FF, rows and word white.
+Swap the file — do not recolour, tint, filter or blend-mode the logo, and never
+put the dark-ground version on a light ground or the reverse. Place the SVG; do
+not rasterise or trace it. Clear space is one bracket height on all sides.
+Minimum 120px wide for the lockup, 32px for the mark alone. In the footer use
+ledger-lockup-stacked.svg, which has the word beneath the mark.
+```
+
 **It swapped in real agency logos**
 
 ```
@@ -115,6 +132,8 @@ Consistency:
 - Same button styles throughout — one primary, one secondary, no variants
 - Same radius family: 16px cards, 11px buttons, 999px pills
 - Check every ground alternates correctly against the spec
+- Check the logo on every section uses the right variant for its ground:
+  ledger-lockup.svg on light, ledger-lockup-inverse.svg on dark
 
 Motion, in one pass so the timing matches:
 - Apply the per-section motion from the spec
@@ -127,6 +146,9 @@ Responsive:
 - The hero's app window can crop on mobile, but the headline must never wrap
   awkwardly mid-phrase
 - Multi-column sections stack in reading order
+- The programme badge strip wraps to multiple rows rather than shrinking the
+  badges below 44px
+- Tables become stacked rows on mobile, not a squeezed grid
 
 Then tell me anything you had to change or compromise, and why.
 ```
