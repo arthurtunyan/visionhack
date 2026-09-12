@@ -87,6 +87,12 @@ async function runScan(base) {
         body.scorecard.categories.length === 4 &&
         body.scorecard.categories.every((c) => c.varietiesFound === body.varietyCounts[c.category]),
     );
+    check(
+      "scorecardEs has the same numbers as scorecard",
+      body.scorecardEs?.overallStatus === body.scorecard?.overallStatus &&
+        body.scorecardEs?.totalUnits === body.scorecard?.totalUnits &&
+        body.scorecardEs?.fixes?.length === body.scorecard?.fixes?.length,
+    );
   }
   return body;
 }

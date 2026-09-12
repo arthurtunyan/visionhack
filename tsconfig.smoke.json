@@ -13,6 +13,7 @@
     "lib/rules/constants.ts",
     "lib/rules/partition.ts",
     "lib/rule-engine.ts",
+    "lib/scorecard-copy.ts",
     "lib/mock-data.ts"
   ]
 }
