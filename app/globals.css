@@ -1,47 +1,165 @@
-@import "tailwindcss";
-
 /*
- * Ledger dashboard theme. Brand rule: two colours only — black #000000 and
- * blue #1B4DFF — on paper white. Blue is the accent (brackets/verdicts) and is
- * never used as a large fill. Grays are neutral scaffolding only.
+ * Ledger site — design tokens and base type.
+ * Two colours plus state: black + blue on paper. Red/amber ONLY mark status.
+ * No Tailwind, no UI kit. CSS Modules handle per-component layout.
  */
-@theme inline {
-  --color-paper: #ffffff;
-  --color-ink: #000000;
-  --color-blue: #1b4dff;
 
-  --color-background: #ffffff;
-  --color-foreground: #000000;
-  --color-primary: #1b4dff;
-  --color-primary-foreground: #ffffff;
+:root {
+  --ink: #000000;
+  --coal: #0b0d12;
+  --paper: #ffffff;
+  --blue: #1b4dff;
+  --blue-lift: #5b82ff;
+  --tint: #f4f6fb;
+  --wash: #f6f7f9;
+  --line: #e6e6e6;
+  --line-dark: #1c202b;
+  --mute: #6b6b6b;
+  --mute-dark: #9aa3b2;
+  --bad: #b3261e;
+  --warn: #8a5300;
 
-  --color-muted: #f4f4f5;
-  --color-muted-foreground: #6b6b6b;
-  --color-border: #e4e4e7;
-  --color-hairline: #d4d4d8;
+  --r-card: 16px;
+  --r-btn: 11px;
+  --r-pill: 999px;
 
-  --color-pass: #1b4dff;
-  --color-fail: #000000;
+  --gutter: 72px;
+  --section-y: 70px;
+  --maxw: 1600px;
 
-  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font: var(--font-archivo), "Archivo", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+}
 
-  --radius: 0px;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html {
-  background-color: var(--color-paper);
+  background-color: var(--paper);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  color: var(--color-ink);
-  font-family: var(--font-sans);
+  margin: 0;
+  color: var(--ink);
+  background-color: var(--paper);
+  font-family: var(--font);
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Tabular figures everywhere numbers are compared in a column. */
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+/* ---- Type scale (Archivo) ---- */
+
+.display-xl {
+  font-size: clamp(40px, 6.4vw, 88px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+}
+
+.display {
+  font-size: clamp(30px, 4.1vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.heading {
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.body-l {
+  font-size: clamp(17px, 1.4vw, 21px);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.body {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.65;
+}
+
+.small {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .body-l {
+    font-size: 17px;
+  }
+  .body {
+    font-size: 16px;
+  }
+}
+
+/* Body copy caps near 62 characters. */
+.measure {
+  max-width: 62ch;
+}
+
+.mute {
+  color: var(--mute);
+}
+
 .tnum {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
+
+/* Tabular numerals for anything compared in a column. */

@@ -1,0 +1,320 @@
+/**
+ * Single source of truth for site copy that repeats across pages.
+ * The non-affiliation line in particular MUST NOT be retyped per page.
+ */
+
+export const NON_AFFILIATION =
+  "Program names identify what Ledger tracks. Ledger is not affiliated with, endorsed by, or acting on behalf of any agency or program.";
+
+export type ProgramTone = "neutral";
+
+export interface Program {
+  abbr: string;
+  label: string;
+}
+
+/** The ten badges in the programme strip on the landing page. */
+export const PROGRAM_STRIP: Program[] = [
+  { abbr: "SNAP", label: "Food benefits" },
+  { abbr: "WIC", label: "Vendor status" },
+  { abbr: "EBT", label: "Benefit payments" },
+  { abbr: "EPA", label: "Waste & refrigerant" },
+  { abbr: "OSHA", label: "Workplace safety" },
+  { abbr: "ABC", label: "Alcohol licence" },
+  { abbr: "DOT", label: "Hazmat shipping" },
+  { abbr: "CHP", label: "Health permit" },
+  { abbr: "W&M", label: "Scales" },
+  { abbr: "TRL", label: "Tobacco" },
+];
+
+export interface Industry {
+  slug: string;
+  name: string;
+  description: string;
+  badges: string[];
+  /** Long-form page copy. */
+  headline: string;
+  intro: string;
+  /** The things that go wrong for this trade, in plain terms. */
+  risks: { title: string; body: string }[];
+}
+
+export const INDUSTRIES: Industry[] = [
+  {
+    slug: "grocery-convenience",
+    name: "Grocery & convenience",
+    description: "SNAP and WIC stocking, health permit, tobacco, scales",
+    badges: ["SNAP", "WIC", "EBT", "CHP", "TRL", "W&M"],
+    headline: "The stocking rule is the one that closes you.",
+    intro:
+      "A corner store answers to more programmes than a supermarket, with less staff to watch them. The stocking minimums behind SNAP and WIC are the ones that quietly fail between renewals — and the invoice scan is built for exactly that.",
+    risks: [
+      {
+        title: "Stocking minimums drift",
+        body: "SNAP wants staple variety and depth in every category. One slow week of produce and you are under without a letter warning you.",
+      },
+      {
+        title: "WIC vendor terms are stricter",
+        body: "WIC checks specific items at specific prices. Ledger tracks the shelf against the vendor agreement, not a generic list.",
+      },
+      {
+        title: "Permits stack up",
+        body: "Health permit, tobacco licence, scales certification — different dates, different inspectors, one calendar.",
+      },
+    ],
+  },
+  {
+    slug: "auto-parts",
+    name: "Auto parts & service",
+    description:
+      "Used oil and hazardous waste, refrigerant handling, repair registration",
+    badges: ["EPA", "OSHA", "DOT", "BAR", "BTC", "FIRE"],
+    headline: "The waste manifest is the paperwork that bites.",
+    intro:
+      "Parts and service stores carry an environmental and safety load most retailers never touch. Used oil, refrigerant and hazardous waste each have their own filing, and a lapsed registration is the kind of thing you only find out about during an inspection.",
+    risks: [
+      {
+        title: "Used oil and hazardous waste",
+        body: "EPA and state rules govern storage, hauling and manifests. Ledger tracks the filing dates so a missed manifest doesn't surface as a fine.",
+      },
+      {
+        title: "Refrigerant handling",
+        body: "Certification and record-keeping for anyone touching MVAC systems. Expiries land on the calendar.",
+      },
+      {
+        title: "Repair registration",
+        body: "State automotive repair registration has posting and renewal terms that are easy to let slide.",
+      },
+    ],
+  },
+  {
+    slug: "liquor-tobacco",
+    name: "Liquor & tobacco",
+    description:
+      "State licence conditions, federal permits, age-verification posting",
+    badges: ["ABC", "TTB", "TRL", "BTC", "FIRE"],
+    headline: "The licence conditions are longer than the licence.",
+    intro:
+      "A liquor or tobacco licence comes with conditions that keep applying long after it's granted — posting, hours, age verification, federal permits. Ledger holds the conditions, not just the expiry date.",
+    risks: [
+      {
+        title: "Licence conditions",
+        body: "State alcoholic beverage control attaches operating conditions to the licence. Ledger tracks the ones you have to keep meeting.",
+      },
+      {
+        title: "Federal permits",
+        body: "TTB permits for certain products carry their own filings on top of the state licence.",
+      },
+      {
+        title: "Age-verification posting",
+        body: "Required signage and records that inspectors check first. Kept on the calendar with everything else.",
+      },
+    ],
+  },
+  {
+    slug: "pharmacy-health",
+    name: "Pharmacy & health",
+    description: "Board of pharmacy, controlled substances, cold chain",
+    badges: ["BOP", "FDA", "CHP", "OSHA"],
+    headline: "The cold chain doesn't forgive a missed log.",
+    intro:
+      "Pharmacies carry the tightest record-keeping of any small retailer — board registration, controlled-substance logs and temperature records that have to be complete, not mostly complete. Ledger tracks the filings around them so the pharmacist can focus on the counter.",
+    risks: [
+      {
+        title: "Board of pharmacy",
+        body: "Registration and renewal terms with conditions that keep applying. Ledger holds the dates and the terms.",
+      },
+      {
+        title: "Controlled substances",
+        body: "Federal and state record-keeping with no tolerance for gaps. Filing reminders land before the deadline.",
+      },
+      {
+        title: "Cold chain",
+        body: "Refrigerated stock has temperature-log requirements. Ledger tracks the certification behind the equipment.",
+      },
+    ],
+  },
+  {
+    slug: "hardware-garden",
+    name: "Hardware & garden",
+    description: "Pesticide sales, hazardous storage, fire load, scales",
+    badges: ["EPA", "OSHA", "FIRE", "W&M", "BTC"],
+    headline: "The fire load is a permit, not a suggestion.",
+    intro:
+      "Hardware and garden stores stock things most retailers don't — pesticides, fuels, fertilisers — and each carries a storage and sales rule. Ledger tracks the permits behind the aisles you'd rather not think about.",
+    risks: [
+      {
+        title: "Pesticide sales",
+        body: "Restricted-use products have licensing and record rules. Ledger tracks the licence and its renewal.",
+      },
+      {
+        title: "Hazardous storage & fire load",
+        body: "Fire marshal inspections govern how much of what you can keep on site. Inspection dates go on the calendar.",
+      },
+      {
+        title: "Scales",
+        body: "Anything sold by weight needs certified scales. Weights-and-measures certification tracked with the rest.",
+      },
+    ],
+  },
+];
+
+export function getIndustry(slug: string): Industry | undefined {
+  return INDUSTRIES.find((i) => i.slug === slug);
+}
+
+export interface CoverageLevel {
+  level: string;
+  programs: Program[];
+}
+
+export const COVERAGE: CoverageLevel[] = [
+  {
+    level: "Federal",
+    programs: [
+      { abbr: "SNAP", label: "SNAP retailer authorization" },
+      { abbr: "WIC", label: "WIC vendor authorization" },
+      { abbr: "EBT", label: "EBT benefit acceptance" },
+      { abbr: "FDA", label: "FDA food facility registration" },
+      { abbr: "EPA", label: "Used oil, hazardous waste and refrigerant handling" },
+      { abbr: "OSHA", label: "Hazard communication and posting" },
+      { abbr: "DOT", label: "Hazardous materials shipping" },
+      { abbr: "TTB", label: "Alcohol and tobacco permits" },
+    ],
+  },
+  {
+    level: "State",
+    programs: [
+      { abbr: "ABC", label: "Alcoholic beverage control" },
+      { abbr: "W&M", label: "Weights and measures" },
+      { abbr: "BAR", label: "Automotive repair registration" },
+      { abbr: "TRL", label: "Tobacco retail licence" },
+      { abbr: "RSP", label: "Seller's permit and resale" },
+      { abbr: "BOP", label: "Board of pharmacy" },
+    ],
+  },
+  {
+    level: "Local",
+    programs: [
+      { abbr: "CHP", label: "County health permit" },
+      { abbr: "FIRE", label: "Fire marshal inspection" },
+      { abbr: "BTC", label: "Business tax certificate" },
+      { abbr: "CoO", label: "Certificate of occupancy" },
+    ],
+  },
+];
+
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export const FAQ: FaqItem[] = [
+  {
+    q: "I don't sell food. Is this for me?",
+    a: "Yes. Auto parts, liquor, pharmacy and hardware stores all carry permit stacks with different renewal dates and different inspectors. The invoice scan is the food-specific part; the permit tracking is not.",
+  },
+  {
+    q: "Are you affiliated with SNAP or the EPA?",
+    a: "No. Ledger tracks published programme requirements so you can see where you stand. It is not affiliated with, endorsed by, or acting for any agency, and no authorization decision is ever ours.",
+  },
+  {
+    q: "What if the photo is blurry?",
+    a: "Ledger transcribes only what it can actually read. Anything ambiguous is listed as held back with a reason, and never counted. A blurry photo gives you a shorter count, not a wrong one.",
+  },
+  {
+    q: "Does a case count as one unit?",
+    a: "No. A case becomes the number of sellable units inside it. A 24-pack is 24. If an item is priced by weight there is no unit count to read, so it is held back for you to confirm.",
+  },
+  {
+    q: "Do I need to integrate my POS?",
+    a: "No. Ledger works from a photograph of the paper invoice and the permit details you enter once. Nothing to install at the register.",
+  },
+];
+
+export interface PricingPlan {
+  name: string;
+  price: string;
+  priceSuffix?: string;
+  priceIsText?: boolean;
+  for: string;
+  featured?: boolean;
+  features: string[];
+}
+
+export const PRICING: PricingPlan[] = [
+  {
+    name: "Single store",
+    price: "$29",
+    priceSuffix: "/month",
+    for: "One location, one owner.",
+    features: [
+      "Unlimited invoice scans",
+      "All 18 programmes tracked",
+      "Renewal reminders",
+      "7 years of scan history",
+    ],
+  },
+  {
+    name: "Group",
+    price: "$24",
+    priceSuffix: "/store/month",
+    featured: true,
+    for: "Two to ten locations.",
+    features: [
+      "Everything in Single store",
+      "One view across every store",
+      "Per-store scorecards",
+      "Staff card tracking",
+      "CSV export",
+    ],
+  },
+  {
+    name: "Chain",
+    price: "Talk to us",
+    priceIsText: true,
+    for: "Eleven locations or more.",
+    features: [
+      "Everything in Group",
+      "Bulk onboarding",
+      "Priority support",
+      "Custom thresholds",
+    ],
+  },
+];
+
+export const NAV_LINKS = [
+  { href: "/industries/grocery-convenience", label: "Industries" },
+  { href: "/coverage", label: "Coverage" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/faq", label: "FAQ" },
+];
+
+export const FOOTER_COLUMNS = [
+  {
+    title: "Product",
+    links: [
+      { href: "/demo", label: "Live demo" },
+      { href: "/coverage", label: "Coverage" },
+      { href: "/pricing", label: "Pricing" },
+      { href: "/faq", label: "FAQ" },
+    ],
+  },
+  {
+    title: "Industries",
+    links: [
+      { href: "/industries/grocery-convenience", label: "Grocery & convenience" },
+      { href: "/industries/auto-parts", label: "Auto parts & service" },
+      { href: "/industries/liquor-tobacco", label: "Liquor & tobacco" },
+      { href: "/industries/pharmacy-health", label: "Pharmacy & health" },
+      { href: "/industries/hardware-garden", label: "Hardware & garden" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { href: "/privacy", label: "Privacy" },
+      { href: "/terms", label: "Terms" },
+    ],
+  },
+];

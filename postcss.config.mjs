@@ -1,7 +1,6 @@
+/** No Tailwind: the site uses plain CSS + CSS Modules. */
 const config = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-  },
+  plugins: {},
 };
 
 export default config;
