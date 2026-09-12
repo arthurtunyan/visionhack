@@ -4,15 +4,15 @@
  * Role A (frontend) and Role C (rule engine) should import from this file
  * rather than re-deriving shapes. Nothing here depends on the Anthropic SDK.
  *
- * NOTE ON THE C BOUNDARY: this is deliberately NOT the ScanResult scorecard.
- * It stops at classified line items plus qualifying-variety counts. Turning
- * that into a pass/fail verdict is Role C's rule engine, and the final shape
- * needs one conversation with C so this slots into their engine rather than
- * duplicating half of it.
+ * THE C BOUNDARY: classified items and qualifying-variety counts come from
+ * this route's pipeline. The pass/fail verdict comes from Role C's rule engine
+ * (lib/rule-engine.ts), which the route runs over `items` and returns as
+ * `scorecard`. Its ScanResult shape is defined in lib/mock-data.ts.
  */
+import type { ScanResult } from "./mock-data";
 import type { Category, StorageState } from "./rules/constants";
 
-export type { Category, StorageState };
+export type { Category, ScanResult, StorageState };
 
 /** An item that survived filtering. Accessory foods appear here with 0 units. */
 export interface ScanItem {
@@ -68,6 +68,8 @@ export interface ScanSuccess {
   items: ScanItem[];        // counted (accessories included, at 0 units)
   excluded: ExcludedItem[]; // NOT counted — display only
   varietyCounts: VarietyCountsByCategory;
+  /** Role C's pass/fail scorecard and fix list, built from `items`. */
+  scorecard: ScanResult;
   meta: ScanMeta;
 }
 

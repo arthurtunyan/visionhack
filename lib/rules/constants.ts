@@ -182,6 +182,10 @@ export const MAX_TOKENS = 16_000;
 /** Multipart field name / JSON key that Role A posts the image under. */
 export const IMAGE_FIELD_NAME = "image";
 
+/** Optional field / JSON key for the store name shown on the scorecard. */
+export const STORE_NAME_FIELD_NAME = "storeName";
+export const MAX_STORE_NAME_LENGTH = 100;
+
 /** Env var carrying the Anthropic key. Server-side only, never NEXT_PUBLIC_*. */
 export const API_KEY_ENV_VAR = "ANTHROPIC_API_KEY";
 

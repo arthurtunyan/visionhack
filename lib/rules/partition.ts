@@ -110,6 +110,8 @@ export function countQualifyingVarieties(items: ScanItem[]): VarietyCountsByCate
     const byVariety = totals.get(item.category);
     if (!byVariety) continue;
     const key = item.variety.trim().toLowerCase();
+    // Unrelated lines with a blank variety would otherwise total as one variety.
+    if (!key) continue;
     byVariety.set(key, (byVariety.get(key) ?? 0) + item.stockingUnits);
   }
 

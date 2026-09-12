@@ -1,22 +1,25 @@
 /**
  * POST /api/scan — photographed invoice/shelf image in, classified line items out.
  *
- * Role boundaries: this route returns clean, classified, structured items.
- * It deliberately does NOT score them — the pass/fail scorecard is Role C's
- * rule engine, which consumes `items` (and must ignore `excluded`).
+ * Role boundaries: the vision pipeline and partition step produce clean,
+ * classified items. Role C's rule engine scores `items` (never `excluded`)
+ * into the pass/fail scorecard, returned as `scorecard`.
  */
 import { NextResponse } from "next/server";
 
 import {
   IMAGE_FIELD_NAME,
+  MAX_STORE_NAME_LENGTH,
   MAX_UPLOAD_BYTES,
   MIN_COUNTED_CONFIDENCE,
   MIN_STOCKING_UNITS_PER_VARIETY,
   MODEL,
+  STORE_NAME_FIELD_NAME,
   corsHeaders,
   isAllowedMediaType,
   type AllowedMediaType,
 } from "@/lib/rules/constants";
+import { buildScanResult } from "@/lib/rule-engine";
 import { partitionClassifiedItems } from "@/lib/rules/partition";
 import type { ScanError, ScanResponse, ScanSuccess } from "@/lib/types";
 import { ScanPipelineError, classifyLines, extractRawLines } from "@/lib/vision/pipeline";
@@ -50,12 +53,19 @@ export async function OPTIONS(req: Request) {
 interface DecodedImage {
   base64: string;
   mediaType: AllowedMediaType;
+  /** Optional display name for the scorecard; empty when not sent. */
+  storeName: string;
+}
+
+function readStoreName(value: unknown): string {
+  return typeof value === "string" ? value.trim().slice(0, MAX_STORE_NAME_LENGTH) : "";
 }
 
 /**
  * Accepts either:
  *   multipart/form-data with an "image" file field   (what the browser sends)
  *   application/json  {"image": "<base64>", "mediaType": "image/jpeg"}
+ * Both may also carry an optional "storeName" string.
  */
 async function readImage(req: Request): Promise<DecodedImage> {
   const contentType = req.headers.get("content-type") ?? "";
@@ -91,7 +101,11 @@ async function readImage(req: Request): Promise<DecodedImage> {
     const bytes = Buffer.from(await field.arrayBuffer());
     assertSize(bytes.byteLength);
     // Buffer#toString("base64") emits no newlines, which the API requires.
-    return { base64: bytes.toString("base64"), mediaType };
+    return {
+      base64: bytes.toString("base64"),
+      mediaType,
+      storeName: readStoreName(form.get(STORE_NAME_FIELD_NAME)),
+    };
   }
 
   if (contentType.includes("application/json")) {
@@ -121,7 +135,7 @@ async function readImage(req: Request): Promise<DecodedImage> {
     // Tolerate a data: URL prefix and any incidental whitespace/newlines.
     const base64 = rawImage.replace(/^data:[^,]*,/, "").replace(/\s+/g, "");
     assertSize(Buffer.byteLength(base64, "base64"));
-    return { base64, mediaType };
+    return { base64, mediaType, storeName: readStoreName(record[STORE_NAME_FIELD_NAME]) };
   }
 
   throw new ScanPipelineError(
@@ -146,7 +160,7 @@ export async function POST(req: Request) {
   const origin = req.headers.get("origin");
 
   try {
-    const { base64, mediaType } = await readImage(req);
+    const { base64, mediaType, storeName } = await readImage(req);
 
     const extractStart = Date.now();
     const raw = await extractRawLines(base64, mediaType);
@@ -163,6 +177,7 @@ export async function POST(req: Request) {
       items,
       excluded,
       varietyCounts,
+      scorecard: buildScanResult(items, storeName),
       meta: {
         model: MODEL,
         rawLineCount: raw.lines.length,

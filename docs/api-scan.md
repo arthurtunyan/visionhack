@@ -4,9 +4,8 @@ Owned by Role B. Takes a photographed invoice/shelf image, returns clean
 classified line items with the scoring rules already applied, plus a
 qualifying-variety count per category.
 
-**It does not build the pass/fail scorecard** — that is Role C's rule engine.
-See [The C boundary](#the-c-boundary) below; the final shape needs one
-conversation with C.
+It also returns `scorecard`: Role C's pass/fail `ScanResult`, built from the
+counted items. See [The C boundary](#the-c-boundary) below.
 
 The route is CORS-enabled and handles the `OPTIONS` preflight, because the
 frontend is hosted on Framer (a different origin).
@@ -22,6 +21,7 @@ Framer is a different origin:
 ```ts
 const form = new FormData();
 form.append("image", file); // file.type must be image/jpeg|png|webp|gif
+form.append("storeName", storeName); // optional, shown on the scorecard
 
 const res = await fetch("https://<app>.vercel.app/api/scan", {
   method: "POST",
@@ -33,6 +33,7 @@ if (data.ok) {
   data.items;         // counted line items
   data.excluded;      // show as "couldn't read these"
   data.varietyCounts; // { dairy, grains, protein, produce }
+  data.scorecard;     // ScanResult: pass/fail, 4 category cards, fix list
 } else {
   data.error.message; // safe to display
 }
@@ -41,7 +42,7 @@ if (data.ok) {
 **JSON (handy for curl/tests)** — base64 under the `image` key:
 
 ```json
-{ "image": "<base64, data: URL prefix tolerated>", "mediaType": "image/jpeg" }
+{ "image": "<base64, data: URL prefix tolerated>", "mediaType": "image/jpeg", "storeName": "optional" }
 ```
 
 Limit: **8 MB**. Larger uploads get `413 payload_too_large`. Downscale
@@ -60,6 +61,7 @@ interface ScanSuccess {
   items: ScanItem[];        // counted (accessories included, at 0 units)
   excluded: ExcludedItem[]; // NOT counted — show as "couldn't read these"
   varietyCounts: VarietyCountsByCategory; // qualifying varieties, floored
+  scorecard: ScanResult;    // C's pass/fail scorecard, shape in lib/mock-data.ts
   meta: ScanMeta;
 }
 
@@ -116,14 +118,15 @@ drifts. Editing the prompt alone cannot change the numbers.
 <a id="the-c-boundary"></a>
 ### The C boundary
 
-This route returns classified items plus `varietyCounts`. It deliberately stops
-short of a pass/fail verdict — that is C's rule engine.
+The route runs C's rule engine ([`lib/rule-engine.ts`](../lib/rule-engine.ts))
+over `items` and returns the result as `scorecard`, typed as `ScanResult` in
+[`lib/mock-data.ts`](../lib/mock-data.ts). That is the shape the UI renders.
 
-**Open question for C:** the specifics doc says the route "returns the
-ScanResult JSON", but the role split gives the ScanResult scorecard to C. Rather
-than guess and rebuild half of C's engine, this returns the inputs a scorecard
-needs. One conversation with C should settle whether they consume
-`varietyCounts` directly or want a different shape.
+The engine reuses the rules in `lib/rules/constants.ts`, so each
+`scorecard.categories[n].varietiesFound` equals `varietyCounts` for that
+category, and a test asserts it. On top of that it applies the pass rule (7
+varieties in every category, perishables in 3 of 4) and builds the fix list.
+`storeName` is optional; without it the scorecard's `storeName` is empty.
 
 ### The rule that matters
 

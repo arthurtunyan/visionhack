@@ -9,5 +9,10 @@
     "jsx": "react-jsx",
     "plugins": []
   },
-  "include": ["lib/rules/constants.ts", "lib/rules/partition.ts"]
+  "include": [
+    "lib/rules/constants.ts",
+    "lib/rules/partition.ts",
+    "lib/rule-engine.ts",
+    "lib/mock-data.ts"
+  ]
 }

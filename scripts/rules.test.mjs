@@ -106,6 +106,15 @@ test("RULE 2 — a variety needs at least 3 stocking units", async (t) => {
     assert.equal(varietyCounts.dairy, 2);
   });
 
+  await t.test("a blank variety never counts", () => {
+    const { varietyCounts } = partitionClassifiedItems([
+      line({ variety: "", packCount: 1, quantity: 1 }),
+      line({ variety: "  ", packCount: 1, quantity: 1 }),
+      line({ variety: "", packCount: 1, quantity: 1 }), // 3 units, but not one variety
+    ]);
+    assert.equal(varietyCounts.dairy, 0);
+  });
+
   await t.test("the threshold constant is 3", () => {
     assert.equal(rules.MIN_STOCKING_UNITS_PER_VARIETY, 3);
     assert.equal(rules.varietyQualifies(2), false);
