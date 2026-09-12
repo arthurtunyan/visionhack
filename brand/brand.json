@@ -7,7 +7,8 @@
     "ink": "#000000",
     "blue": "#1B4DFF",
     "paper": "#FFFFFF",
-    "note": "Two colours: black and blue, on white. BLUE IS THE ACCENT AND IS USED FOR THE BRACKETS ONLY \u2014 the rows stay black (white on the inverse cuts). That split is deliberate: it is what survives 16px, where a single blue row disappears and a fully blue mark loses the contrast between brackets and rows. The 38% opacity on the middle row is part of the mark and must not be restyled."
+    "note": "Two colours: black and blue, on white. BLUE IS THE ACCENT AND IS USED FOR THE BRACKETS ONLY - the rows stay black (white on the inverse cuts). On dark grounds use blue_on_dark #5B82FF instead: the white-ground blue #1B4DFF goes muddy against near-black and the mark loses its shape. That split is deliberate and so is the 16px behaviour: a single blue row disappears at small sizes, and a fully blue mark loses the contrast between brackets and rows. The 38% opacity on the middle row is part of the mark and must not be restyled.",
+    "blue_on_dark": "#5B82FF"
   },
   "typography": {
     "wordmark": "Archivo SemiBold (600), SIL Open Font License",
@@ -38,11 +39,15 @@
     "github_avatar": "brand/social/avatar-512.png",
     "social_preview": "brand/social/social-preview-1280x640.png",
     "og_image": "brand/social/og-image-1200x630.png",
-    "readme_banner": "brand/social/readme-banner-1600x400.png"
+    "readme_banner": "brand/social/readme-banner-1600x400.png",
+    "logo_stacked": "brand/logo/ledger-lockup-stacked.svg",
+    "logo_stacked_on_dark": "brand/logo/ledger-lockup-stacked-inverse.svg",
+    "mark_animated_on_dark": "brand/logo/ledger-mark-animated-inverse.svg",
+    "logo_animated_on_dark": "brand/logo/ledger-lockup-animated-inverse.svg"
   },
   "usage": {
     "default": "Use the lockup (mark + wordmark) wherever there is room. Use the bare mark only where the name is already present or space is tight.",
-    "on_dark": "Switch to the -inverse files: the rows and wordmark flip to white, the brackets stay blue. Blue has enough contrast on both grounds. Never recolour the standard files by hand.",
+    "on_dark": "Switch to the -inverse files: rows and wordmark flip to white and the brackets lift to #5B82FF. Never recolour the standard files by hand.",
     "loading": "Use mark_animated as a scanning / working state while a scan is in flight. It loops on a 3s cycle and respects prefers-reduced-motion.",
     "browser_tab": "favicon_svg plus favicon_ico. Sizes 16 and 32 use a two-row cut of the mark because three rows blur together below 32px.",
     "ios": "apple_touch_icon (180px).",
@@ -51,11 +56,13 @@
     "github_social_preview": "social_preview (1280x640), set in repository settings.",
     "open_graph": "og_image (1200x630).",
     "readme": "readme_banner at the top of a README. Use a STATIC file there \u2014 GitHub strips SVG styling, so an animated SVG will not animate in a README.",
-    "animation_support": "The animated SVGs loop anywhere real CSS runs (Vercel, Framer, any browser). They do NOT animate inside a GitHub README."
+    "animation_support": "The animated SVGs loop anywhere real CSS runs (Vercel, Framer, any browser). They do NOT animate inside a GitHub README.",
+    "stacked": "Use logo_stacked where the lockup has vertical room and limited width - footers, app splash, square placements."
   },
   "rules": [
     "Two colours only: black #000000 and blue #1B4DFF on white, or the inverse files on black. Do not introduce a third colour.",
     "Blue is for the brackets only. Never recolour the rows or the wordmark blue, and never render the brackets in anything but #1B4DFF.",
+    "On dark grounds use the -inverse files, which carry blue #5B82FF. Never place the white-ground blue #1B4DFF on near-black.",
     "Never recolour, add gradients, shadows, glows, or outlines.",
     "Never re-typeset the wordmark in live text \u2014 always use the outlined path.",
     "Never rearrange the lockup: the mark sits left of the word, at the spacing defined in build-brand.py.",

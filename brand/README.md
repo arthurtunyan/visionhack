@@ -9,6 +9,10 @@ Two colours: black `#000000` and blue `#1B4DFF` on white `#FFFFFF`.
 **Blue is the accent and is used for the brackets only** — the rows stay black
 (white on the inverse cuts). Don't introduce a third colour.
 
+**On dark, blue lifts to `#5B82FF`.** The white-ground blue goes muddy against
+near-black and the mark loses its shape. The `-inverse` files already carry the
+lifted value, so use those rather than recolouring by hand.
+
 If you are an agent working on this repo, start here and with
 [`brand.json`](brand.json) — everything you need is in those two files.
 
@@ -22,6 +26,10 @@ If you are an agent working on this repo, start here and with
 | Icon only, on dark | `brand/logo/ledger-mark-inverse.svg` |
 | **Loading / scanning state** | `brand/logo/ledger-mark-animated.svg` |
 | Animated full logo | `brand/logo/ledger-lockup-animated.svg` |
+| Animated mark, on dark | `brand/logo/ledger-mark-animated-inverse.svg` |
+| Animated full logo, on dark | `brand/logo/ledger-lockup-animated-inverse.svg` |
+| Stacked (word under mark) | `brand/logo/ledger-lockup-stacked.svg` |
+| Stacked, on dark | `brand/logo/ledger-lockup-stacked-inverse.svg` |
 | Browser tab | `brand/logo/favicon.svg` + `brand/icons/favicon.ico` |
 | iOS home screen | `brand/icons/apple-touch-icon-180.png` |
 | PWA manifest | `brand/icons/icon-192.png`, `brand/icons/icon-512.png` |

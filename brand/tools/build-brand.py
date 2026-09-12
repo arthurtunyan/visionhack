@@ -33,6 +33,10 @@ LOGO, ICONS, SOCIAL = BRAND / "logo", BRAND / "icons", BRAND / "social"
 # between the brackets and the rows.
 INK = "#000000"
 BLUE = "#1B4DFF"
+# Brand blue is too dark to sit on near-black: #1B4DFF on #0B0D12 goes muddy and
+# the mark loses its shape. BLUE_UP is the same hue lifted, for dark grounds only.
+BLUE_UP = "#5B82FF"
+COAL = "#0B0D12"
 PAPER = "#FFFFFF"
 
 # --- the mark ----------------------------------------------------------------
@@ -169,6 +173,30 @@ def lockup_geometry() -> tuple[float, float, float]:
     return s, base, tx
 
 
+def svg_lockup_stacked(bracket: str, row: str, word: str, *, bg: str | None = None) -> str:
+    """Mark above, wordmark beneath, both centred. For square-ish placements."""
+    wordmark = (LOGO / "wordmark.path").read_text(encoding="utf-8").strip()
+    VW, VH = 200, 168
+    m = 84                                  # mark box
+    mx = (VW - m) / 2
+    s = 132 / 2729                          # wordmark drawn 132 units wide
+    wx = (VW - 132) / 2 - 65 * s            # 65 = glyph left bearing
+    wy = 12 + m + 20 + 723 * s              # baseline below the mark
+    parts = [svg_open(VW, VH, f"0 0 {VW} {VH}", "Ledger")]
+    if bg:
+        parts.append(f'  <rect width="{VW}" height="{VH}" fill="{bg}"/>')
+    parts += [
+        f'  <g transform="translate({num(mx)} 12) scale({num(m/64)})">',
+        mark_body(bracket, row, indent="    "),
+        "  </g>",
+        f'  <g transform="translate({num(wx)} {num(wy)}) scale({num(s)} {num(-s)})">',
+        f'    <path d="{wordmark}" fill="{word}"/>',
+        "  </g>",
+        "</svg>\n",
+    ]
+    return "\n".join(parts)
+
+
 def svg_lockup(bracket: str, row: str, word: str, *, animated=False, bg: str | None = None) -> str:
     wordmark = (LOGO / "wordmark.path").read_text(encoding="utf-8").strip()
     s, base, tx = lockup_geometry()
@@ -282,13 +310,17 @@ def main() -> int:
     # --- SVGs (source of truth) ---
     svgs = {
         "ledger-mark.svg": svg_mark(BLUE, INK),
-        "ledger-mark-inverse.svg": svg_mark(BLUE, PAPER),
+        "ledger-mark-inverse.svg": svg_mark(BLUE_UP, PAPER),
         "ledger-mark-animated.svg": svg_mark(BLUE, INK, animated=True),
         "ledger-lockup.svg": svg_lockup(BLUE, INK, INK),
-        "ledger-lockup-inverse.svg": svg_lockup(BLUE, PAPER, PAPER),
+        "ledger-lockup-inverse.svg": svg_lockup(BLUE_UP, PAPER, PAPER),
         "ledger-lockup-animated.svg": svg_lockup(BLUE, INK, INK, animated=True),
+        "ledger-mark-animated-inverse.svg": svg_mark(BLUE_UP, PAPER, animated=True),
+        "ledger-lockup-animated-inverse.svg": svg_lockup(BLUE_UP, PAPER, PAPER, animated=True),
+        "ledger-lockup-stacked.svg": svg_lockup_stacked(BLUE, INK, INK),
+        "ledger-lockup-stacked-inverse.svg": svg_lockup_stacked(BLUE_UP, PAPER, PAPER),
         "favicon.svg": svg_favicon(BLUE, INK, PAPER, bordered=True),
-        "favicon-inverse.svg": svg_favicon(BLUE, PAPER, INK, bordered=False),
+        "favicon-inverse.svg": svg_favicon(BLUE_UP, PAPER, COAL, bordered=False),
     }
     for name, content in svgs.items():
         (LOGO / name).write_text(content, encoding="utf-8")

@@ -397,20 +397,25 @@ def main():
 
 
 # ---------------------------------------------------------------- sections ---
+# Layout rule: no two consecutive sections share a shape. The first pass used a
+# bordered white card everywhere, roughly forty times down the page, which is
+# why it all blended. Borders are now the exception; hairlines and space do the
+# separating, and body copy never drops below 15px.
 SW = 1600
+PAD = 72
 
 
 def s01_nav():
-    links = "".join(f'<span class=h2 style="font-size:15px;color:{MUTE}">{n}</span>'
-                    for n in ["Industries", "How it works", "Coverage", "Pricing", "FAQ"])
+    links = "".join(f'<span style="font-size:16px;font-weight:500;color:{MUTE}">{n}</span>'
+                    for n in ["Industries", "How it works", "Coverage", "Pricing"])
     return page(f"""
 <div style="width:{SW}px;height:104px;border-bottom:1px solid {LINE};display:flex;
-  align-items:center;justify-content:space-between;padding:0 60px;background:{PAPER}">
- {lockup(25)}
- <div style="display:flex;align-items:center;gap:36px">{links}</div>
- <div style="display:flex;align-items:center;gap:12px">
-  <span class=btn2 style="padding:11px 19px;font-size:14px">Sign in</span>
-  <span class=btn style="padding:11px 19px;font-size:14px">Start free</span></div>
+  align-items:center;justify-content:space-between;padding:0 {PAD}px">
+ {lockup(26)}
+ <div style="display:flex;align-items:center;gap:40px">{links}</div>
+ <div style="display:flex;align-items:center;gap:22px">
+  <span style="font-size:16px;font-weight:600">Sign in</span>
+  <span class=btn style="padding:12px 22px;font-size:16px">Start free</span></div>
 </div>""", SW, 104)
 
 
@@ -428,323 +433,308 @@ def s02_hero():
   background:{WASH};border:none">
  <span class=h2 style="font-size:13px">4 lines held back as unreadable</span>
  <span class=mute style="font-size:12px;font-weight:500;flex:1">
-  Roma tomatoes and yellow onions were priced by weight.</span>
- <span class=h2 style="font-size:12px;color:{BLUE}">Review</span></div>""", "Dashboard", 430)
+  Roma tomatoes and yellow onions were priced by weight.</span></div>""", "Dashboard", 430)
     return page(f"""
-<div style="width:{SW}px;height:800px;display:flex;align-items:center;overflow:hidden;
-  background:linear-gradient(160deg,{PAPER} 30%,{TINT} 100%)">
- <div style="flex:0 0 700px;padding-left:60px">
-  {pill("neut", "Grocery &middot; auto parts &middot; liquor &middot; pharmacy &middot; hardware", 13)}
-  <div class=h1 style="font-size:68px;margin-top:22px;letter-spacing:-.042em">
+<div style="width:{SW}px;height:820px;display:flex;align-items:center;overflow:hidden;
+  background:linear-gradient(165deg,{PAPER} 40%,{TINT} 100%)">
+ <div style="flex:0 0 720px;padding-left:{PAD}px">
+  <div style="font-size:15px;font-weight:600;color:{MUTE};letter-spacing:-.01em">
+   Grocery &middot; auto parts &middot; liquor &middot; pharmacy &middot; hardware</div>
+  <div class=h1 style="font-size:76px;margin-top:20px;letter-spacing:-.045em">
    Every permit your<br>store has to hold,<br>in one place.</div>
-  <div style="font-size:19px;margin-top:24px;font-weight:500;line-height:1.55;
-    max-width:540px;color:{MUTE}">
+  <div class=body-lg style="margin-top:26px">
    Ledger tracks the licences, filings and stocking rules a small retailer is
-   judged on, and tells you which one is about to fail. Photograph an invoice
-   and it checks your shelves too.</div>
-  <div style="display:flex;gap:13px;margin-top:32px;align-items:center">
-   <span class=btn style="font-size:16px;padding:17px 28px">Start free</span>
-   <span class=btn2 style="font-size:16px;padding:17px 28px">See a sample scan</span></div>
-  <div class=mute style="font-size:14px;margin-top:20px;font-weight:500">
+   judged on, and tells you which one is about to fail.</div>
+  <div style="display:flex;gap:14px;margin-top:34px;align-items:center">
+   <span class=btn style="font-size:17px;padding:18px 30px">Start free</span>
+   <span style="font-size:17px;font-weight:600">See a sample scan &rarr;</span></div>
+  <div style="font-size:15px;color:{MUTE};font-weight:500;margin-top:22px">
    No integration. Works from a phone photo.</div>
  </div>
- <div style="flex:1;margin-left:34px;margin-right:-190px">{window(body)}</div>
-</div>""", SW, 800)
+ <div style="flex:1;margin-left:30px;margin-right:-220px">{window(body)}</div>
+</div>""", SW, 820)
 
 
-def s03_coverage_strip():
+def s03_strip():
     order = ["SNAP", "WIC", "EBT", "EPA", "OSHA", "ABC", "DOT", "CHP", "W&M", "TRL"]
     tiles = "".join(
-        f'<div style="display:flex;flex-direction:column;align-items:center;gap:10px;'
-        f'text-align:center;width:132px">{badge(a, 62)}'
-        f'<span class=mute style="font-size:11px;font-weight:600;line-height:1.3">'
+        f'<div style="display:flex;flex-direction:column;align-items:center;gap:11px;'
+        f'text-align:center;width:128px">{badge(a, 58)}'
+        f'<span style="font-size:13px;font-weight:600;color:{MUTE};line-height:1.35">'
         f'{SHORT[a]}</span></div>' for a in order)
     return page(f"""
-<div style="width:{SW}px;height:270px;padding:44px 60px;background:{PAPER};
-  border-top:1px solid {LINE};border-bottom:1px solid {LINE};display:flex;
-  flex-direction:column;justify-content:center;gap:26px">
- <div style="display:flex;align-items:baseline;justify-content:space-between">
-  <span class=h2 style="font-size:15px;color:{MUTE}">
-   Tracking 18 programs across federal, state and local authorities</span>
-  <span class=h2 style="font-size:13px;color:{BLUE}">See full coverage</span></div>
- <div style="display:flex;justify-content:space-between;align-items:center">{tiles}</div>
- <div class=mute style="font-size:11px;font-weight:500">{NON_AFFILIATION}</div>
-</div>""", SW, 270)
+<div style="width:{SW}px;height:290px;padding:52px {PAD}px;display:flex;flex-direction:column;
+  justify-content:center;gap:32px;border-bottom:1px solid {LINE}">
+ <div style="font-size:17px;font-weight:600;color:{MUTE}">
+  Eighteen programmes tracked across federal, state and local authorities</div>
+ <div style="display:flex;justify-content:space-between;align-items:flex-start">{tiles}</div>
+ <div style="font-size:13px;font-weight:500;color:{MUTE}">{NON_AFFILIATION}</div>
+</div>""", SW, 290)
 
 
 def s04_industries():
-    def cell(name, blurb, codes, hi=False):
-        tiles = "".join(badge(c, 40, mute=True) for c in codes)
-        return (f'<div class="card{" elev" if hi else ""}" style="flex:1;padding:26px;'
-                f'display:flex;flex-direction:column;gap:18px;'
-                f'{f"border:2px solid {INK};" if hi else ""}">'
-                f'<div><div class=h2 style="font-size:19px">{name}</div>'
-                f'<div class=mute style="font-size:14px;margin-top:9px;font-weight:500;'
-                f'line-height:1.55">{blurb}</div></div>'
-                f'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:auto">{tiles}</div></div>')
-    top = "".join(cell(n, b, c, hi=(i == 0)) for i, (n, b, c) in enumerate(VERTICALS[:3]))
-    bot = "".join(cell(n, b, c) for n, b, c in VERTICALS[3:])
+    """An editorial list, not five cards. Hairlines separate; nothing is boxed."""
+    rows = ""
+    for i, (name, blurb, codes) in enumerate(VERTICALS):
+        tiles = "".join(badge(c, 38, mute=True) for c in codes)
+        rows += (f'<div style="display:flex;align-items:center;gap:40px;padding:26px 0;'
+                 f'{"border-top:1px solid " + LINE + ";" if i else ""}">'
+                 f'<div style="flex:0 0 300px"><div class=h2 style="font-size:23px">{name}</div></div>'
+                 f'<div style="flex:1;font-size:17px;font-weight:500;color:{MUTE};'
+                 f'line-height:1.55">{blurb}</div>'
+                 f'<div style="display:flex;gap:8px;flex:0 0 auto">{tiles}</div></div>')
     return page(f"""
-<div style="width:{SW}px;height:800px;padding:66px 60px;display:flex;flex-direction:column;
-  gap:34px;background:{TINT}">
- {section_head("Industries", "Not just grocery.",
-   "Any small retailer carries a stack of permits that expire on different dates and are "
-   "judged by different authorities. Ledger holds the whole stack.")}
- <div style="display:flex;gap:18px;flex:1">{top}</div>
- <div style="display:flex;gap:18px;flex:1">{bot}
-  <div class=card style="flex:1;padding:26px;display:flex;flex-direction:column;
-    justify-content:center;gap:12px;background:transparent;border-style:dashed">
-   <div class=h2 style="font-size:17px;color:{MUTE}">Something else?</div>
-   <div class=mute style="font-size:14px;font-weight:500;line-height:1.55">
-    Tell us the permits you hold and we will add them.</div></div></div>
-</div>""", SW, 800)
+<div style="width:{SW}px;height:700px;padding:70px {PAD}px;display:flex;flex-direction:column">
+ <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:70px;
+   margin-bottom:30px">
+  <div class=h1 style="font-size:52px">Not just grocery.</div>
+  <div class=body style="max-width:520px">Any small retailer carries a stack of permits
+   that expire on different dates and answer to different inspectors. Ledger holds the
+   whole stack.</div></div>
+ <div style="flex:1">{rows}</div>
+</div>""", SW, 700)
 
 
 def s05_how():
-    def step(i, t, s_, inner):
-        return (f'<div style="flex:1;display:flex;flex-direction:column;gap:15px">'
-                f'<div style="display:flex;align-items:center;gap:11px">'
-                f'<div style="width:25px;height:25px;border-radius:50%;background:{INK};'
-                f'color:{PAPER};font-size:13px;font-weight:700;display:flex;align-items:center;'
-                f'justify-content:center">{i}</div>'
-                f'<span class=h2 style="font-size:19px">{t}</span></div>'
-                f'<div class=mute style="font-size:15px;font-weight:500;line-height:1.55">{s_}</div>'
-                f'<div class="card elev" style="flex:1;padding:20px;display:flex;'
-                f'flex-direction:column;justify-content:center">{inner}</div></div>')
-    shot1 = ('<div style="display:flex;flex-direction:column;gap:8px">' +
-             "".join(f'<div style="display:flex;align-items:center;gap:10px;border:1px solid {LINE};'
-                     f'border-radius:9px;padding:10px 12px">{badge(a, 26, mute=True)}'
-                     f'<span style="font-size:13px;font-weight:600">{n}</span></div>'
-                     for a, n in [("SNAP", "SNAP retailer"), ("CHP", "County health"),
-                                  ("W&M", "Weights & measures"), ("TRL", "Tobacco retail")]) +
-             '</div>')
-    shot2 = "".join(f'<div style="padding:7px 0">{cat_bar(n, c)}</div>' for n, c, _ in CATEGORIES)
-    shot3 = "".join(
-        f'<div style="display:flex;align-items:center;gap:10px;border:1px solid {LINE};'
-        f'border-radius:9px;padding:11px 13px;margin-bottom:8px">'
-        f'<div style="width:15px;height:15px;border:2px solid {LINE};border-radius:5px"></div>'
-        f'<span style="font-size:13px;font-weight:600;flex:1">{n}</span>'
-        f'<span style="font-size:12px;font-weight:600;color:{c}">{d}</span></div>'
-        for n, d, c in [("Add 2 produce varieties", "blocks review", BAD),
-                        ("Renew health permit", "overdue", BAD),
-                        ("WIC price list", "9 days", WARN),
-                        ("Scale re-certification", "41 days", WARN)])
+    """Three numbered rows, alternating sides, separated by rules. No card grid."""
+    shots = [
+        "".join(f'<div style="display:flex;align-items:center;gap:12px;border-bottom:1px solid '
+                f'{LINE};padding:13px 0">{badge(a, 30, mute=True)}'
+                f'<span style="font-size:15px;font-weight:600">{n}</span></div>'
+                for a, n in [("SNAP", "SNAP retailer authorization"),
+                             ("CHP", "County health permit"),
+                             ("W&M", "Weights and measures")]),
+        "".join(f'<div style="padding:9px 0">{cat_bar(n, c)}</div>' for n, c, _ in CATEGORIES),
+        "".join(f'<div style="display:flex;align-items:center;gap:12px;border-bottom:1px solid '
+                f'{LINE};padding:13px 0">'
+                f'<div style="width:17px;height:17px;border:2px solid {LINE};border-radius:5px"></div>'
+                f'<span style="font-size:15px;font-weight:600;flex:1">{n}</span>'
+                f'<span style="font-size:14px;font-weight:600;color:{c}">{d}</span></div>'
+                for n, d, c in [("Add 2 produce varieties", "blocks review", BAD),
+                                ("Renew health permit", "overdue", BAD),
+                                ("WIC price list", "9 days", WARN)])]
+    steps = [("Add your permits", "Tell Ledger what you hold. It works out which rules apply "
+                                  "to your kind of store and when each one comes due."),
+             ("See where you stand", "Every requirement against its threshold, re-checked after "
+                                     "each scan. No digging through renewal letters."),
+             ("Fix what blocks you", "Ranked by what closes you down first, not by date. The "
+                                     "top item is always the one that matters today.")]
+    rows = ""
+    for i, ((t, b), shot) in enumerate(zip(steps, shots)):
+        left = (f'<div style="flex:0 0 520px">'
+                f'<div style="display:flex;align-items:baseline;gap:14px">'
+                f'<span style="font-size:15px;font-weight:700;color:{BLUE};'
+                f'font-variant-numeric:tabular-nums">0{i+1}</span>'
+                f'<span class=h2 style="font-size:26px">{t}</span></div>'
+                f'<div class=body style="margin-top:12px;font-size:17px">{b}</div></div>')
+        right = f'<div style="flex:1;max-width:620px">{shot}</div>'
+        order = (left + right) if i % 2 == 0 else (right + left)
+        rows += (f'<div style="display:flex;align-items:center;gap:80px;padding:34px 0;'
+                 f'{"border-top:1px solid " + LINE + ";" if i else ""}">{order}</div>')
     return page(f"""
-<div style="width:{SW}px;height:790px;padding:66px 60px;display:flex;flex-direction:column;gap:38px">
- {section_head("How it works", "Set it up once. It runs itself.")}
- <div style="display:flex;gap:26px;flex:1">
-  {step(1, "Add your permits", "Ledger learns which rules apply to your kind of store.", shot1)}
-  {step(2, "See where you stand", "Every requirement against its threshold, after each scan.", shot2)}
-  {step(3, "Fix what blocks you", "Ranked by what closes you down first, not by date.", shot3)}
- </div></div>""", SW, 790)
+<div style="width:{SW}px;height:100%;min-height:1040px;padding:70px {PAD}px;
+  background:{TINT};display:flex;flex-direction:column">
+ <div class=h1 style="font-size:52px;margin-bottom:20px">Set it up once.<br>It runs itself.</div>
+ <div style="flex:1">{rows}</div>
+</div>""", SW, 1040)
 
 
-def s06_features():
-    def txt(t, b):
-        return (f'<div class="card elev" style="flex:1;padding:24px;display:flex;'
-                f'flex-direction:column;justify-content:center">'
-                f'<div class=h2 style="font-size:17px">{t}</div>'
-                f'<div class=mute style="font-size:14px;margin-top:8px;font-weight:500;'
-                f'line-height:1.55">{b}</div></div>')
+def s06_undercount():
+    """The differentiator. One idea, one large piece of evidence, no card grid."""
     held = "".join(
-        f'<div style="display:flex;align-items:center;gap:10px;padding:9px 0;'
+        f'<div style="display:flex;align-items:center;gap:16px;padding:15px 0;'
         f'border-bottom:1px solid {LINE}">'
-        f'<span class=h2 style="font-size:12px;flex:1">{n}</span>'
-        f'<span class=mute style="font-size:11px;font-weight:500">{w}</span></div>'
-        for n, _, w in EXCLUDED[:3])
+        f'<span class=h2 style="font-size:16px;flex:0 0 250px">{n}</span>'
+        f'<span style="font-size:15px;font-weight:500;color:{MUTE};flex:0 0 130px">{p}</span>'
+        f'<span style="font-size:15px;font-weight:500;color:{INK};flex:1">{w}</span></div>'
+        for n, p, w in EXCLUDED)
     return page(f"""
-<div style="width:{SW}px;height:830px;padding:66px 60px;display:flex;flex-direction:column;gap:32px">
- <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:60px">
-  <div><div class=lbl style="color:{BLUE}">Why Ledger</div>
-   <div class=h1 style="font-size:46px;margin-top:13px">Built to undercount.</div></div>
-  <div class=mute style="font-size:17px;font-weight:500;line-height:1.55;max-width:430px">
-   Telling a store it passes when it doesn't is the expensive mistake. Anything Ledger
-   can't read with confidence is held back, not scored.</div></div>
- <div style="display:flex;gap:18px;flex:1.3">
-  <div class="card elev" style="flex:1.55;padding:30px;display:flex;gap:28px;align-items:center">
-   <div style="flex:1">
-    <div class=h2 style="font-size:22px">It shows you what it refused to count</div>
-    <div class=mute style="font-size:15px;margin-top:11px;font-weight:500;line-height:1.6">
-     A case priced by weight has no unit count to read, so Ledger lists it with the reason
-     instead of inventing a number. Four lines held back beats one wrong total.</div></div>
-   <div style="flex:0 0 300px;background:{WASH};border-radius:12px;padding:16px 18px">
-    <div class=lbl style="color:{MUTE};font-size:10px;margin-bottom:6px">Held back</div>
-    {held}</div></div>
-  <div class="card elev" style="flex:1;padding:30px;display:flex;flex-direction:column;
-    justify-content:center;gap:24px">
-   <div style="display:flex;gap:6px">
-    {"".join(f'<div style="flex:1;text-align:center;border:1px solid {LINE};border-radius:9px;padding:11px 3px"><div class=h2 style="font-size:19px;color:{BLUE if c>=3 else BAD}">{c}</div><div class=mute style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:3px">{n[:7]}</div></div>' for n, c, _ in CATEGORIES)}</div>
-   <div><div class=h2 style="font-size:19px">It knows the thresholds</div>
-    <div class=mute style="font-size:14px;margin-top:8px;font-weight:500;line-height:1.55">
-     Three varieties in each of four staple categories for SNAP. Butter and jerky are
-     accessory foods, so they count for nothing.</div></div></div>
+<div style="width:{SW}px;height:640px;padding:70px {PAD}px;display:flex;gap:80px">
+ <div style="flex:0 0 520px;display:flex;flex-direction:column;justify-content:center">
+  <div class=h1 style="font-size:54px">Built to<br>undercount.</div>
+  <div class=body style="margin-top:22px;font-size:18px">
+   Telling a store it passes when it doesn't is the expensive mistake. A case priced
+   by weight has no unit count to read, so Ledger lists it with the reason instead of
+   inventing a number.</div>
+  <div style="margin-top:28px;padding-top:24px;border-top:1px solid {LINE}">
+   <div class=h1 style="font-size:56px">4</div>
+   <div style="font-size:17px;font-weight:600;margin-top:6px">lines held back on this
+    invoice</div>
+   <div style="font-size:16px;font-weight:500;color:{MUTE};margin-top:8px">
+    Four held back beats one wrong total.</div></div>
  </div>
- <div style="display:flex;gap:18px;flex:0.62">
-  {txt("Two passes, not one", "Transcribe the printed lines exactly, then classify them. Reading mistakes never get laundered into confident answers.")}
-  {txt("Cases become units", "A 24-pack is 24 sellable units, not one case. Pack maths happens in one place you can correct.")}
-  {txt("Every scan is kept", "Seven years of history, so you can show an inspector how you arrived at the number.")}
- </div></div>""", SW, 830)
+ <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+  <div style="display:flex;gap:16px;font-size:12px;font-weight:700;color:{MUTE};
+    text-transform:uppercase;letter-spacing:.09em;padding-bottom:12px;
+    border-bottom:2px solid {INK}">
+   <span style="flex:0 0 250px">Line</span><span style="flex:0 0 130px">Pack</span>
+   <span style="flex:1">Why it was not counted</span></div>
+  {held}
+ </div></div>""", SW, 640)
 
 
 def s07_coverage():
     def group(level, items):
         rows = "".join(
-            f'<div style="display:flex;align-items:center;gap:14px;padding:11px 0;'
-            f'border-bottom:1px solid #1C202B">{badge(a, 38, dark=True)}'
-            f'<div style="min-width:0"><div class=h2 style="font-size:14px;color:{PAPER}">{a}</div>'
-            f'<div style="font-size:12px;color:#8B93A1;font-weight:500;margin-top:2px">{d}</div>'
-            f'</div></div>' for a, d in items)
-        return (f'<div style="flex:1"><div class=lbl style="color:#6E8BFF;margin-bottom:14px">'
-                f'{level}</div>{rows}</div>')
-    cols = "".join(group(k, v) for k, v in PROGRAMS.items())
+            f'<div style="display:flex;align-items:center;gap:14px;padding:13px 0;'
+            f'border-bottom:1px solid #1C202B">{badge(a, 40, dark=True)}'
+            f'<div style="min-width:0"><div class=h2 style="font-size:15px;color:{PAPER}">{a}</div>'
+            f'<div style="font-size:13.5px;color:{MUTE_DK};font-weight:500;margin-top:3px;'
+            f'line-height:1.45">{d}</div></div></div>' for a, d in items)
+        return (f'<div style="flex:1"><div style="font-size:13px;font-weight:700;color:{BLUE_UP};'
+                f'text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px">{level}</div>'
+                f'{rows}</div>')
     return page(f"""
-<div style="width:{SW}px;height:900px;padding:66px 60px;background:{COAL};display:flex;
-  flex-direction:column;gap:34px">
- {section_head("Coverage", "Eighteen programs, three levels of government.",
-   "Each one has its own renewal date, its own filing, and its own inspector. "
-   "Ledger holds all of them against one calendar.", on_dark=True)}
- <div style="display:flex;gap:48px;flex:1">{cols}</div>
- <div style="border-top:1px solid #1C202B;padding-top:20px;font-size:12px;
-   color:#8B93A1;font-weight:500;max-width:900px">{NON_AFFILIATION}</div>
-</div>""", SW, 900)
+<div style="width:{SW}px;height:920px;padding:70px {PAD}px;background:{COAL};display:flex;
+  flex-direction:column;gap:36px">
+ <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:70px">
+  <div class=h1 style="font-size:52px;color:{PAPER}">Eighteen programmes,<br>three levels of
+   government.</div>
+  <div class=body-dk style="max-width:500px;font-size:18px">Each has its own renewal date,
+   its own filing and its own inspector. Ledger holds all of them against one calendar.</div>
+ </div>
+ <div style="display:flex;gap:56px;flex:1">
+  {"".join(group(k, v) for k, v in PROGRAMS.items())}</div>
+ <div style="border-top:1px solid #1C202B;padding-top:22px;font-size:13.5px;
+   color:{MUTE_DK};font-weight:500;max-width:1000px">{NON_AFFILIATION}</div>
+</div>""", SW, 920)
 
 
 def s08_proof():
     return page(f"""
-<div style="width:{SW}px;height:540px;padding:60px;display:flex;gap:64px;align-items:center">
- <div style="flex:1.5">
-  <div style="font-size:32px;font-weight:600;letter-spacing:-.03em;line-height:1.38">
+<div style="width:{SW}px;height:560px;padding:70px {PAD}px;display:flex;gap:80px;
+  align-items:center;background:{TINT}">
+ <div style="flex:1.6">
+  <div style="font-size:36px;font-weight:600;letter-spacing:-.03em;line-height:1.36">
    &ldquo;We lost SNAP authorization once over two produce varieties nobody noticed
    were gone. It took four months to get back. Now I photograph the invoice at the
    back door and I know before the truck leaves.&rdquo;</div>
-  <div style="display:flex;align-items:center;gap:14px;margin-top:32px">
-   <div style="width:46px;height:46px;border-radius:50%;background:{WASH};display:flex;
-     align-items:center;justify-content:center;font-weight:600">RM</div>
-   <div><div class=h2 style="font-size:16px">Rosa Medina</div>
-    <div class=mute style="font-size:14px;font-weight:500">
+  <div style="display:flex;align-items:center;gap:16px;margin-top:34px">
+   <div style="width:48px;height:48px;border-radius:50%;background:{PAPER};display:flex;
+     align-items:center;justify-content:center;font-weight:600;font-size:16px">RM</div>
+   <div><div class=h2 style="font-size:17px">Rosa Medina</div>
+    <div style="font-size:16px;font-weight:500;color:{MUTE}">
      Owner, Corner Market. Four stores in Los Angeles.</div></div></div></div>
- <div class="card elev" style="flex:0 0 380px;padding:30px">
-  <div class=lbl style="color:{MUTE}">Since switching</div>
-  <div class=h1 style="font-size:64px;margin-top:12px">0</div>
-  <div style="font-size:16px;font-weight:600;margin-top:6px">
-   line items counted that Ledger wasn't certain about</div>
-  <div style="border-top:1px solid {LINE};margin-top:22px;padding-top:18px;display:flex;
-    justify-content:space-between;align-items:baseline">
-   <span class=mute style="font-size:14px;font-weight:500">Average scan</span>
-   <span class=h2 style="font-size:22px">20s</span></div></div>
-</div>""", SW, 540)
+ <div style="flex:0 0 320px;border-left:1px solid {LINE};padding-left:56px">
+  <div class=h1 style="font-size:76px">0</div>
+  <div style="font-size:18px;font-weight:600;margin-top:10px;line-height:1.45">
+   line items counted that<br>Ledger wasn't certain about</div>
+  <div style="margin-top:26px;padding-top:20px;border-top:1px solid {LINE};
+    display:flex;justify-content:space-between;align-items:baseline">
+   <span style="font-size:16px;font-weight:500;color:{MUTE}">Average scan</span>
+   <span class=h2 style="font-size:24px">20s</span></div></div>
+</div>""", SW, 560)
 
 
 def s09_pricing():
+    """Cards earn their border here: three discrete objects being compared."""
     def plan(name, price, per, blurb, feats, hi=False):
         rows = "".join(
-            f'<div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;'
-            f'font-weight:500;color:{MUTE};margin-bottom:11px">'
+            f'<div style="display:flex;gap:11px;align-items:flex-start;font-size:16px;'
+            f'font-weight:500;color:{MUTE};margin-bottom:13px;line-height:1.45">'
             f'<span style="color:{BLUE};font-weight:700">&check;</span>{f}</div>' for f in feats)
-        return (f'<div class="card{" elev" if hi else ""}" style="flex:1;padding:30px;'
-                f'display:flex;flex-direction:column;gap:18px;'
-                f'{f"border:2px solid {BLUE};" if hi else ""}">'
+        return (f'<div style="flex:1;padding:34px;display:flex;flex-direction:column;gap:20px;'
+                f'border:{"2px solid " + BLUE if hi else "1px solid " + LINE};border-radius:16px">'
                 f'<div><div style="display:flex;align-items:center;gap:10px">'
-                f'<span class=h2 style="font-size:18px">{name}</span>'
-                f'{pill("ok","Most stores",11) if hi else ""}</div>'
-                f'<div class=mute style="font-size:14px;margin-top:8px;font-weight:500">{blurb}</div></div>'
-                f'<div><span class=h1 style="font-size:{44 if price.startswith("$") else 28}px">'
-                f'{price}</span>'
-                f'<span class=mute style="font-size:15px;font-weight:500;margin-left:3px">{per}</span></div>'
+                f'<span class=h2 style="font-size:20px">{name}</span>'
+                f'{pill("ok","Most stores",12) if hi else ""}</div>'
+                f'<div style="font-size:16px;margin-top:9px;font-weight:500;color:{MUTE}">'
+                f'{blurb}</div></div>'
+                f'<div><span class=h1 style="font-size:{48 if price.startswith("$") else 30}px">'
+                f'{price}</span><span style="font-size:16px;font-weight:500;color:{MUTE};'
+                f'margin-left:4px">{per}</span></div>'
                 f'<div style="flex:1">{rows}</div>'
-                f'<div class="{"btn" if hi else "btn2"}" style="text-align:center">Start free</div></div>')
+                f'<div class="{"btn" if hi else "btn2"}" style="text-align:center;font-size:16px">'
+                f'Start free</div></div>')
     return page(f"""
-<div style="width:{SW}px;height:840px;padding:66px 60px;display:flex;flex-direction:column;
-  gap:34px;background:{TINT}">
- {section_head("Pricing", "Priced per store, not per scan.",
-   "Scan as often as you take deliveries. Cancel any time.")}
- <div style="display:flex;gap:20px;flex:1">
+<div style="width:{SW}px;height:830px;padding:70px {PAD}px;display:flex;flex-direction:column;
+  gap:36px">
+ <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:70px">
+  <div class=h1 style="font-size:52px">Priced per store,<br>not per scan.</div>
+  <div class=body style="max-width:460px">Scan as often as you take deliveries.
+   Cancel any time.</div></div>
+ <div style="display:flex;gap:22px;flex:1">
   {plan("Single store", "$29", "/month", "One location, one owner.",
-        ["Unlimited invoice scans", "All 18 programs tracked", "Renewal reminders",
+        ["Unlimited invoice scans", "All 18 programmes tracked", "Renewal reminders",
          "7 years of scan history"])}
   {plan("Group", "$24", "/store/month", "Two to ten locations.",
         ["Everything in Single store", "One view across every store", "Per-store scorecards",
          "Staff card tracking", "CSV export"], hi=True)}
   {plan("Chain", "Talk to us", "", "Eleven locations or more.",
-        ["Everything in Group", "Bulk onboarding", "Priority support", "Custom thresholds"])}
- </div></div>""", SW, 840)
+        ["Everything in Group", "Bulk onboarding", "Priority support",
+         "Custom thresholds"])}
+ </div></div>""", SW, 830)
 
 
 def s10_faq():
     def q(a, b):
-        return (f'<div style="padding:22px 0;border-bottom:1px solid {LINE}">'
-                f'<div class=h2 style="font-size:18px">{a}</div>'
-                f'<div class=mute style="font-size:15px;margin-top:10px;font-weight:500;'
-                f'line-height:1.6;max-width:680px">{b}</div></div>')
+        return (f'<div style="padding:26px 0;border-top:1px solid {LINE};display:flex;gap:60px">'
+                f'<div class=h2 style="font-size:20px;flex:0 0 340px">{a}</div>'
+                f'<div style="font-size:17px;font-weight:500;color:{MUTE};line-height:1.6;'
+                f'flex:1">{b}</div></div>')
     return page(f"""
-<div style="width:{SW}px;height:760px;padding:60px;display:flex;gap:70px">
- <div style="flex:0 0 380px">
-  <div class=lbl style="color:{BLUE}">FAQ</div>
-  <div class=h1 style="font-size:40px;margin-top:13px">Questions<br>we get asked.</div>
-  <div class=mute style="font-size:15px;margin-top:18px;font-weight:500;line-height:1.6">
-   Still stuck? Reply to any scan email and a person answers.</div></div>
+<div style="width:{SW}px;height:720px;padding:66px {PAD}px;display:flex;flex-direction:column">
+ <div class=h1 style="font-size:52px;margin-bottom:26px">Questions we get asked.</div>
  <div style="flex:1">
   {q("I don't sell food. Is this for me?", "Yes. Auto parts, liquor, pharmacy and hardware stores all carry permit stacks with different renewal dates and different inspectors. The invoice scan is the food-specific part; the permit tracking is not.")}
   {q("Are you affiliated with SNAP or the EPA?", "No. Ledger tracks published programme requirements so you can see where you stand. It is not affiliated with, endorsed by, or acting for any agency, and no authorization decision is ever ours.")}
   {q("What if the photo is blurry?", "Ledger transcribes only what it can actually read. Anything ambiguous is listed as held back with a reason, and never counted. A blurry photo gives you a shorter count, not a wrong one.")}
-  {q("Does a case count as one unit?", "No. A case becomes the number of sellable units inside it. A 24-pack is 24. If an item is priced by weight, there is no unit count to read, so it is held back for you to confirm.")}
+  {q("Does a case count as one unit?", "No. A case becomes the number of sellable units inside it. A 24-pack is 24. If an item is priced by weight there is no unit count to read, so it is held back for you to confirm.")}
   {q("Do I need to integrate my POS?", "No. Ledger works from a photograph of the paper invoice and the permit details you enter once. Nothing to install at the register.")}
- </div></div>""", SW, 830)
+ </div></div>""", SW, 720)
 
 
 def s11_cta():
     return page(f"""
-<div style="width:{SW}px;height:440px;background:{COAL};display:flex;align-items:center;
-  justify-content:space-between;padding:0 80px">
- <div>{lockup(29, PAPER)}
-  <div class=h1 style="font-size:46px;color:{PAPER};margin-top:24px">
+<div style="width:{SW}px;height:460px;background:{COAL};display:flex;align-items:center;
+  justify-content:space-between;padding:0 {PAD}px">
+ <div>{lockup(30, PAPER, on_dark=True)}
+  <div class=h1 style="font-size:52px;color:{PAPER};margin-top:26px">
    Find out which permit<br>is about to fail.</div></div>
- <div style="display:flex;flex-direction:column;gap:13px;align-items:flex-end">
-  <span class=btn style="background:{PAPER};color:{INK};font-size:17px;padding:18px 30px">
+ <div style="display:flex;flex-direction:column;gap:14px;align-items:flex-end">
+  <span class=btn style="background:{PAPER};color:{INK};font-size:18px;padding:19px 34px">
    Start free</span>
-  <span style="color:#8B93A1;font-size:14px;font-weight:500">First store free. No card.</span></div>
-</div>""", SW, 440)
+  <span style="color:{MUTE_DK};font-size:16px;font-weight:500">First store free. No card.</span>
+ </div></div>""", SW, 460)
 
 
 def s12_footer():
     def col(h, items):
-        return (f'<div style="flex:1"><div class=h2 style="font-size:14px;margin-bottom:15px">{h}</div>'
-                + "".join(f'<div class=mute style="font-size:14px;font-weight:500;'
-                          f'margin-bottom:10px">{i}</div>' for i in items) + '</div>')
+        return (f'<div style="flex:1"><div class=h2 style="font-size:15px;margin-bottom:16px">{h}</div>'
+                + "".join(f'<div style="font-size:15px;font-weight:500;color:{MUTE};'
+                          f'margin-bottom:11px">{i}</div>' for i in items) + '</div>')
     return page(f"""
-<div style="width:{SW}px;height:430px;padding:56px 60px;display:flex;flex-direction:column;
+<div style="width:{SW}px;height:440px;padding:56px {PAD}px;display:flex;flex-direction:column;
   justify-content:space-between;border-top:1px solid {LINE}">
  <div style="display:flex;gap:60px">
-  <div style="flex:0 0 300px">{lockup(23)}
-   <div class=mute style="font-size:14px;margin-top:15px;font-weight:500;line-height:1.6">
-    Permit and stocking compliance for<br>independent retailers.</div></div>
+  <div style="flex:0 0 280px">{lockup_stacked(24)}</div>
   {col("Product", ["Permit tracking", "Invoice scanning", "Coverage", "Pricing"])}
   {col("Industries", ["Grocery & convenience", "Auto parts & service", "Liquor & tobacco",
                       "Pharmacy & health", "Hardware & garden"])}
   {col("Company", ["About", "Contact", "Privacy", "Terms"])}
  </div>
- <div style="border-top:1px solid {LINE};padding-top:22px">
-  <div class=mute style="font-size:12px;font-weight:500;line-height:1.6;max-width:1000px">
+ <div style="border-top:1px solid {LINE};padding-top:24px">
+  <div style="font-size:14px;font-weight:500;color:{MUTE};line-height:1.6;max-width:1000px">
    {NON_AFFILIATION}</div>
-  <div style="display:flex;justify-content:space-between;margin-top:10px">
-   <span class=mute style="font-size:13px;font-weight:500">&copy; 2026 Ledger</span>
-   <span class=mute style="font-size:13px;font-weight:500">Los Angeles, CA</span></div></div>
-</div>""", SW, 430)
+  <div style="display:flex;justify-content:space-between;margin-top:12px">
+   <span style="font-size:15px;font-weight:500;color:{MUTE}">&copy; 2026 Ledger</span>
+   <span style="font-size:15px;font-weight:500;color:{MUTE}">Los Angeles, CA</span></div></div>
+</div>""", SW, 440)
 
 
 SECTIONS = {
     "s01-nav.png": (s01_nav, SW, 104),
-    "s02-hero.png": (s02_hero, SW, 800),
-    "s03-coverage-strip.png": (s03_coverage_strip, SW, 270),
-    "s04-industries.png": (s04_industries, SW, 800),
-    "s05-how-it-works.png": (s05_how, SW, 790),
-    "s06-features.png": (s06_features, SW, 830),
-    "s07-coverage.png": (s07_coverage, SW, 900),
-    "s08-social-proof.png": (s08_proof, SW, 540),
-    "s09-pricing.png": (s09_pricing, SW, 840),
-    "s10-faq.png": (s10_faq, SW, 760),
-    "s11-cta.png": (s11_cta, SW, 440),
-    "s12-footer.png": (s12_footer, SW, 430),
+    "s02-hero.png": (s02_hero, SW, 820),
+    "s03-coverage-strip.png": (s03_strip, SW, 290),
+    "s04-industries.png": (s04_industries, SW, 700),
+    "s05-how-it-works.png": (s05_how, SW, 1040),
+    "s06-features.png": (s06_undercount, SW, 640),
+    "s07-coverage.png": (s07_coverage, SW, 920),
+    "s08-social-proof.png": (s08_proof, SW, 560),
+    "s09-pricing.png": (s09_pricing, SW, 830),
+    "s10-faq.png": (s10_faq, SW, 720),
+    "s11-cta.png": (s11_cta, SW, 460),
+    "s12-footer.png": (s12_footer, SW, 440),
 }
 
 

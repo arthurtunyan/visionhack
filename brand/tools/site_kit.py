@@ -13,6 +13,11 @@ FONTS = Path(__file__).resolve().parent / "fonts"
 INK, BLUE, PAPER = "#000000", "#1B4DFF", "#FFFFFF"
 # Near-black for large surfaces: pure #000 reads as a hole on a screen.
 COAL, TINT, BLUE_DK = "#0B0D12", "#F4F6FB", "#0F35C4"
+# Brand blue is too dark to sit on near-black: #1B4DFF on #0B0D12 is muddy and
+# the mark loses its shape. BLUE_UP is the same hue lifted for dark grounds only.
+BLUE_UP = "#5B82FF"
+# Muted text on dark. #6B6B6B is a white-ground value and vanishes on coal.
+MUTE_DK = "#9AA3B2"
 MUTE, LINE, WASH = "#6B6B6B", "#E6E6E6", "#F6F7F9"
 WARN, BAD, GOOD = "#8A5300", "#B3261E", "#1B4DFF"
 
@@ -68,13 +73,18 @@ def font_face() -> str:
         for w in (400, 500, 600, 700))
 
 
-def mark(size, bracket=BLUE, row=INK, small=False) -> str:
+def mark(size, bracket=BLUE, row=INK, small=False, on_dark=False) -> str:
+    """on_dark lifts the bracket blue and the dimmed row so the mark holds its
+    shape against coal. Never use the white-ground blue on a dark surface."""
+    if on_dark:
+        bracket = BLUE_UP if bracket in (BLUE, BLUE_UP) else bracket
+        row = PAPER if row in (INK, PAPER) else row
     st = (f'fill="none" stroke="{bracket}" stroke-width="4.5" '
           'stroke-linecap="round" stroke-linejoin="round"')
     rows = ((f'<rect x="21" y="24" width="22" height="6" rx="3" fill="{row}"/>'
              f'<rect x="21" y="34" width="15" height="6" rx="3" fill="{row}"/>') if small else
             (f'<rect x="22" y="23" width="20" height="4.6" rx="2.3" fill="{row}"/>'
-             f'<rect x="22" y="30.2" width="13" height="4.6" rx="2.3" fill="{row}" opacity=".38"/>'
+             f'<rect x="22" y="30.2" width="13" height="4.6" rx="2.3" fill="{row}" opacity="{".45" if on_dark else ".38"}"/>'
              f'<rect x="22" y="37.4" width="16" height="4.6" rx="2.3" fill="{row}"/>'))
     return (f'<svg width="{size}" height="{size}" viewBox="0 0 64 64" '
             f'xmlns="http://www.w3.org/2000/svg" style="display:block;flex:0 0 auto">'
@@ -91,9 +101,16 @@ def wordmark(px, color=INK) -> str:
             f'</g></svg>')
 
 
-def lockup(px, color=INK) -> str:
+def lockup(px, color=INK, on_dark=False) -> str:
     return (f'<div style="display:flex;align-items:center;gap:{px*0.42:.0f}px">'
-            f'{mark(int(px*1.55), BLUE, color)}{wordmark(px, color)}</div>')
+            f'{mark(int(px*1.55), BLUE, color, on_dark=on_dark)}{wordmark(px, color)}</div>')
+
+
+def lockup_stacked(px, color=INK, on_dark=False) -> str:
+    """Mark above, word beneath. Use where the lockup has vertical room."""
+    return (f'<div style="display:flex;flex-direction:column;align-items:center;'
+            f'gap:{px*0.22:.0f}px">{mark(int(px*2.1), BLUE, color, on_dark=on_dark)}'
+            f'{wordmark(px, color)}</div>')
 
 
 BASE = f"""
@@ -115,7 +132,12 @@ body{{font-family:'Archivo',system-ui,sans-serif;color:{INK};background:{PAPER};
  font-weight:600;display:inline-block}}
 .elev{{box-shadow:0 1px 2px rgba(16,20,32,.05),0 10px 28px rgba(16,20,32,.07)}}
 .elev2{{box-shadow:0 2px 4px rgba(16,20,32,.06),0 24px 60px rgba(16,20,32,.12)}}
-.meas{{max-width:60ch}}
+.meas{{max-width:62ch}}
+.body{{font-size:17px;font-weight:500;line-height:1.65;color:{MUTE};max-width:62ch}}
+.body-lg{{font-size:20px;font-weight:500;line-height:1.6;color:{MUTE};max-width:60ch}}
+.body-dk{{font-size:17px;font-weight:500;line-height:1.65;color:{MUTE_DK};max-width:62ch}}
+.rule{{border-top:1px solid {LINE}}}
+.rule-dk{{border-top:1px solid #1C202B}}
 .btn2{{border:1px solid {LINE};border-radius:11px;padding:14px 22px;font-size:15px;
  font-weight:600;display:inline-block}}
 """
