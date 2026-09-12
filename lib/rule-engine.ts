@@ -1,6 +1,7 @@
 /**
  * Rule engine (Role C): scores the counted items from POST /api/scan against
- * the USDA stocking rule and builds the ScanResult scorecard, fix list included.
+ * the configured Criterion A stocking thresholds and builds the ScanResult
+ * scorecard, fix list included.
  *
  * Pure and synchronous, so it is unit-tested with no API key (`npm test`).
  *
@@ -33,6 +34,9 @@ type Fix = ScanResult["fixes"][number];
  * Varieties and perishables decide pass/fail. The unit minimums already follow
  * from them (7 varieties × 3 units = 21, 4 categories × 21 = 84) and are
  * checked anyway so that stays true if any one number changes.
+ *
+ * Regulatory sources and the limits of this invoice-based estimate are
+ * documented in docs/regulatory-basis.md.
  */
 export const REQUIRED_VARIETIES_PER_CATEGORY = 7;
 export const REQUIRED_UNITS_PER_CATEGORY = 21;
