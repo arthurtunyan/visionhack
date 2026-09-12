@@ -54,6 +54,8 @@ Telling a store they are short is merely annoying. Telling a store they pass whe
 - If an item is ambiguous in ANY way, DO NOT COUNT IT. Set "excludeReason" and give it a low confidence.
 - NEVER invent a line item the source text does not support.
 - NEVER guess a pack size, a case count, or a quantity. Unknown means null, not a plausible default.
+- A weight or grade is NOT a unit count: "40 #" and "25 LB CS" are weight-only, while produce "4x4" is a size/grade. Set packCount to null for all three. Container words such as "pint", "bushel", and "box" without a printed numeric count also mean null. "16 / 3 #" is an explicit 16-pack of 3-pound units, so its packCount is 16.
+- Unrefrigerated whole produce such as tomatoes, onions, lettuce, cabbage, peppers, cucumbers, yams, and celery is "fresh", not "shelf_stable". Preserve explicit frozen, canned, dried, pickled, fried, powder, puree, sauce, paste, juice, and other prepared forms.
 - If a line does not clearly belong to one of the four categories (e.g. paper goods, cleaning supplies, beverages, prepared deli), set "excludeReason" and pick your closest category guess — it will be dropped, not counted.
 - If a line was marked illegible during transcription, exclude it.
 - Prefer a lower confidence score when uncertain. Items scoring below ${MIN_COUNTED_CONFIDENCE} are dropped from the count automatically.

@@ -18,6 +18,7 @@ import { spawn } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { decisionSignature } from "./smoke-signature.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -25,8 +26,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 let remoteUrl = null;
 let imagePath = resolve(root, "fixtures/sample-invoice.png");
-// Forced tool calling either works every time or it doesn't. --runs N repeats
-// the live scan so a one-off success isn't mistaken for reliability.
+// The declared-tool/strict-parser contract must work every time. --runs N
+// repeats the live scan so a one-off success isn't mistaken for reliability.
 let runs = 1;
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === "--url") remoteUrl = argv[++i];
@@ -126,11 +127,19 @@ function summarize(body) {
   console.log(`  timingMs:      ${JSON.stringify(body.meta?.timingMs)}`);
 }
 
-/** Run the live scan `runs` times; every run must pass. */
+/** Run the live scan `runs` times; every run and decision must agree. */
 async function runScanRepeatedly(base) {
+  const signatures = [];
   for (let i = 1; i <= runs; i++) {
     if (runs > 1) console.log(`\n  --- run ${i} of ${runs} ---`);
-    await runScan(base);
+    signatures.push(decisionSignature(await runScan(base)));
+  }
+  if (runs > 1) {
+    const first = signatures[0];
+    check(
+      "repeated scans agree on decision-critical output",
+      first !== null && signatures.every((signature) => signature === first),
+    );
   }
 }
 
