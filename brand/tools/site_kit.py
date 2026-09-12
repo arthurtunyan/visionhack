@@ -111,6 +111,9 @@ body{{font-family:'Archivo',system-ui,sans-serif;color:{INK};background:{PAPER};
 .lbl{{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.09em}}
 .btn{{background:{BLUE};color:{PAPER};border-radius:11px;padding:14px 22px;font-size:15px;
  font-weight:600;display:inline-block}}
+.elev{{box-shadow:0 1px 2px rgba(16,20,32,.05),0 10px 28px rgba(16,20,32,.07)}}
+.elev2{{box-shadow:0 2px 4px rgba(16,20,32,.06),0 24px 60px rgba(16,20,32,.12)}}
+.meas{{max-width:60ch}}
 .btn2{{border:1px solid {LINE};border-radius:11px;padding:14px 22px;font-size:15px;
  font-weight:600;display:inline-block}}
 """
@@ -171,3 +174,26 @@ def cat_bar(name, have, need=REQUIRED_VARIETIES, width=None) -> str:
             f'<div style="display:flex;align-items:center;justify-content:space-between;'
             f'margin-bottom:10px"><span class=h2 style="font-size:15px">{name}</span>{state}</div>'
             f'<div style="display:flex;gap:5px">{segs}</div></div>')
+
+
+def window(inner, w=None, title="app.ledger.co/dashboard", pad=0):
+    """A real application window. A floating card reads as a widget; chrome reads
+    as software, which is what a hero is meant to show."""
+    dots = "".join(f'<div style="width:11px;height:11px;border-radius:50%;background:#DDE1E6"></div>'
+                   for _ in range(3))
+    return (f'<div class=elev2 style="{"width:%dpx;" % w if w else ""}border:1px solid {LINE};'
+            f'border-radius:14px;overflow:hidden;background:{PAPER}">'
+            f'<div style="height:44px;border-bottom:1px solid {LINE};display:flex;'
+            f'align-items:center;gap:9px;padding:0 15px;background:#FBFBFC">{dots}'
+            f'<div style="flex:1;display:flex;justify-content:center">'
+            f'<div style="background:{PAPER};border:1px solid {LINE};border-radius:7px;'
+            f'padding:4px 16px;font-size:11px;font-weight:500;color:{MUTE}">{title}</div></div>'
+            f'<div style="width:66px"></div></div>'
+            f'<div style="padding:{pad}px">{inner}</div></div>')
+
+
+def mini_app(inner, active="Dashboard", h=430):
+    """A cut-down app body for embedding inside a window."""
+    return (f'<div style="display:flex;height:{h}px">{app_sidebar(active, 180)}'
+            f'<div style="flex:1;min-width:0;padding:22px 24px;display:flex;'
+            f'flex-direction:column;gap:16px">{inner}</div></div>')

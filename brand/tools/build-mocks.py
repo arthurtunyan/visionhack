@@ -378,33 +378,40 @@ def s01_nav():
 
 
 def s02_hero():
+    body = mini_app(f"""
+{app_header("Corner Market #17", "Valley Fresh invoice VF-88213 &middot; scanned 2 minutes ago",
+            pill("bad", "Produce short"))}
+<div style="display:flex;gap:14px">
+ <div class=card style="flex:0 0 168px;padding:16px;display:flex;flex-direction:column;
+   align-items:center;justify-content:center;gap:4px">{ring(75, 96, BAD, "3 of 4")}</div>
+ <div class=card style="flex:1;padding:18px 20px;display:flex;flex-direction:column;
+   justify-content:center;gap:13px">
+  {"".join(f'<div>{cat_bar(n, c)}</div>' for n, c, _ in CATEGORIES)}</div></div>
+<div class=card style="padding:14px 18px;display:flex;align-items:center;gap:12px;
+  background:{WASH};border:none">
+ <span class=h2 style="font-size:13px">4 lines held back as unreadable</span>
+ <span class=mute style="font-size:12px;font-weight:500;flex:1">
+  Roma tomatoes and yellow onions were priced by weight.</span>
+ <span class=h2 style="font-size:12px;color:{BLUE}">Review</span></div>""", "Dashboard", 430)
     return page(f"""
-<div style="width:{SW}px;height:900px;display:flex;align-items:center;gap:56px;padding:0 60px">
- <div style="flex:0 0 640px">
+<div style="width:{SW}px;height:790px;display:flex;align-items:center;overflow:hidden;
+  background:linear-gradient(180deg,{PAPER} 0%,{WASH} 100%)">
+ <div style="flex:0 0 700px;padding-left:60px">
   {pill("neut", "For SNAP and WIC authorized stores", 13)}
-  <div class=h1 style="font-size:64px;margin-top:22px">Know in seconds if<br>you'd pass a
-   stocking<br>review.</div>
-  <div class=mute style="font-size:20px;margin-top:24px;font-weight:500;line-height:1.5">
-   Photograph a delivery invoice. Ledger reads every printed line,<br>
-   counts stocking units by staple category, and tells you<br>
-   where you're short &mdash; before an inspector does.</div>
-  <div style="display:flex;gap:14px;margin-top:34px">
-   <span class=btn style="font-size:16px;padding:16px 26px">Scan an invoice</span>
-   <span class=btn2 style="font-size:16px;padding:16px 26px">See a sample result</span></div>
-  <div class=mute style="font-size:14px;margin-top:22px;font-weight:500">
+  <div class=h1 style="font-size:66px;margin-top:22px;letter-spacing:-.04em">
+   Know in seconds if<br>you'd pass a stocking<br>review.</div>
+  <div class=mute style="font-size:19px;margin-top:24px;font-weight:500;line-height:1.55;
+    max-width:520px">
+   Photograph a delivery invoice. Ledger reads every printed line, counts stocking
+   units by staple category, and tells you where you're short before an inspector does.</div>
+  <div style="display:flex;gap:13px;margin-top:32px;align-items:center">
+   <span class=btn style="font-size:16px;padding:17px 28px">Scan an invoice</span>
+   <span class=btn2 style="font-size:16px;padding:17px 28px">See a sample result</span></div>
+  <div class=mute style="font-size:14px;margin-top:20px;font-weight:500">
    No integration. Works from a phone photo.</div>
  </div>
- <div style="flex:1;background:{WASH};border-radius:22px;padding:34px;height:660px;
-   display:flex;align-items:center;justify-content:center">
-  <div class=card style="width:100%;padding:26px;display:flex;flex-direction:column;gap:18px">
-   <div style="display:flex;justify-content:space-between;align-items:center">
-    <span class=h2 style="font-size:17px">Stocking scorecard</span>{pill("bad","Produce short",12)}</div>
-   {"".join(f'<div style="padding:6px 0">{cat_bar(n, c)}</div>' for n, c, _ in CATEGORIES)}
-   <div style="border-top:1px solid {LINE};padding-top:16px;display:flex;
-     justify-content:space-between;align-items:center">
-    <span class=mute style="font-size:13px;font-weight:500">4 lines held back as unreadable</span>
-    <span class=h2 style="font-size:13px;color:{BLUE}">Review</span></div></div>
- </div></div>""", SW, 900)
+ <div style="flex:1;margin-left:34px;margin-right:-190px">{window(body)}</div>
+</div>""", SW, 860)
 
 
 def s03_how():
@@ -416,8 +423,8 @@ def s03_how():
                 f'justify-content:center">{i}</div>'
                 f'<span class=h2 style="font-size:19px">{t}</span></div>'
                 f'<div class=mute style="font-size:15px;font-weight:500;line-height:1.55">{s}</div>'
-                f'<div class=card style="flex:1;padding:20px;background:{WASH};border:none">'
-                f'{inner}</div></div>')
+                f'<div class=card style="flex:1;padding:20px;background:{WASH};border:none;'
+                f'display:flex;flex-direction:column;justify-content:center">{inner}</div></div>')
     shot1 = (f'<div style="display:flex;flex-direction:column;gap:9px">' +
              "".join(f'<div style="background:{PAPER};border:1px solid {LINE};border-radius:9px;'
                      f'padding:11px 13px;font-size:13px;font-weight:600">{n}</div>'
@@ -446,55 +453,76 @@ def s03_how():
 
 
 def s04_features():
-    def cell(t, s, big=False):
-        return (f'<div class=card style="flex:{2 if big else 1};padding:30px;display:flex;'
-                f'flex-direction:column;gap:14px;justify-content:space-between">'
-                f'<div>{mark(38)}<div class=h2 style="font-size:20px;margin-top:18px">{t}</div>'
-                f'<div class=mute style="font-size:15px;margin-top:9px;font-weight:500;'
-                f'line-height:1.55">{s}</div></div></div>')
+    def txt(t, b, small=False):
+        return (f'<div class="card elev" style="flex:1;padding:{22 if small else 28}px;'
+                f'display:flex;flex-direction:column;justify-content:center">'
+                f'<div class=h2 style="font-size:{16 if small else 19}px">{t}</div>'
+                f'<div class=mute style="font-size:{13 if small else 15}px;margin-top:8px;'
+                f'font-weight:500;line-height:1.55">{b}</div></div>')
+    held = "".join(
+        f'<div style="display:flex;align-items:center;gap:10px;padding:9px 0;'
+        f'border-bottom:1px solid {LINE}">'
+        f'<span class=h2 style="font-size:12px;flex:1">{n}</span>'
+        f'<span class=mute style="font-size:11px;font-weight:500">{w}</span></div>'
+        for n, _, w in EXCLUDED[:3])
     return page(f"""
-<div style="width:{SW}px;height:860px;padding:70px 60px;display:flex;flex-direction:column;gap:40px">
- <div style="max-width:820px">
-  <div class=lbl style="color:{BLUE}">Why Ledger</div>
-  <div class=h1 style="font-size:44px;margin-top:14px">Built to undercount.</div>
-  <div class=mute style="font-size:19px;margin-top:16px;font-weight:500;line-height:1.5">
-   Telling a store it passes when it doesn't is the expensive mistake. Ledger holds back
-   anything it can't read with confidence.</div></div>
- <div style="display:flex;gap:20px;flex:1">
-  {cell("Reads printed invoices", "Two passes: transcribe the lines exactly, then classify them. Transcription errors never get laundered into confident answers.")}
-  {cell("Counts stocking units", "Pack sizes become sellable units. A case priced by weight is held back, not guessed at.")}
-  {cell("Knows the staple rules", "Three varieties in each of four categories. Accessory foods like butter and jerky count for nothing.")}
+<div style="width:{SW}px;height:820px;padding:64px 60px;display:flex;flex-direction:column;gap:30px">
+ <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:60px">
+  <div><div class=lbl style="color:{BLUE}">Why Ledger</div>
+   <div class=h1 style="font-size:46px;margin-top:13px">Built to undercount.</div></div>
+  <div class=mute style="font-size:17px;font-weight:500;line-height:1.55;max-width:440px">
+   Telling a store it passes when it doesn't is the expensive mistake. Anything Ledger
+   can't read with confidence is held back, not scored.</div></div>
+ <div style="display:flex;gap:18px;flex:1.25">
+  <div class="card elev" style="flex:1.55;padding:30px;display:flex;gap:28px;align-items:center">
+   <div style="flex:1">
+    <div class=h2 style="font-size:22px">It shows you what it refused to count</div>
+    <div class=mute style="font-size:15px;margin-top:11px;font-weight:500;line-height:1.6">
+     A case priced by weight has no unit count to read, so Ledger lists it with the reason
+     instead of inventing a number. Four lines held back beats one wrong total.</div></div>
+   <div style="flex:0 0 300px;background:{WASH};border-radius:12px;padding:16px 18px">
+    <div class=lbl style="color:{MUTE};font-size:10px;margin-bottom:6px">Held back</div>
+    {held}</div></div>
+  <div class="card elev" style="flex:1;padding:30px;display:flex;flex-direction:column;
+    justify-content:center;gap:26px">
+   <div style="display:flex;gap:6px">
+    {"".join(f'<div style="flex:1;text-align:center;border:1px solid {LINE};border-radius:9px;padding:11px 3px"><div class=h2 style="font-size:19px;color:{BLUE if c>=3 else BAD}">{c}</div><div class=mute style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:3px">{n[:7]}</div></div>' for n, c, _ in CATEGORIES)}</div>
+   <div><div class=h2 style="font-size:19px">It knows the staple rules</div>
+    <div class=mute style="font-size:14px;margin-top:8px;font-weight:500;line-height:1.55">
+     Three varieties in each of four categories. Butter and jerky are accessory foods,
+     so they count for nothing.</div></div></div>
  </div>
- <div style="display:flex;gap:20px;flex:1">
-  {cell("Shows what it couldn't read", "Every held-back line is listed with the reason, so a human can confirm it in seconds.")}
-  {cell("Tracks every licence", "SNAP, WIC, health permits, food handler cards, scales. One renewal calendar.")}
-  {cell("Keeps the receipts", "Every scan is stored, so you can show an inspector how you got the number.")}
- </div></div>""", SW, 860)
+ <div style="display:flex;gap:18px;flex:0.62">
+  {txt("Two passes, not one", "Transcribe the printed lines exactly, then classify them. Reading mistakes never get laundered into confident answers.", True)}
+  {txt("Cases become units", "A 24-pack is 24 sellable units, not one case. Pack maths happens in one place you can correct.", True)}
+  {txt("Every scan is kept", "Seven years of history, so you can show an inspector how you arrived at the number.", True)}
+ </div></div>""", SW, 880)
 
 
 def s05_proof():
-    def stat(n, l):
-        return (f'<div style="flex:1"><div class=h1 style="font-size:50px">{n}</div>'
-                f'<div class=mute style="font-size:15px;margin-top:8px;font-weight:500">{l}</div></div>')
     return page(f"""
-<div style="width:{SW}px;height:620px;padding:70px 60px;display:flex;gap:56px;align-items:center">
- <div style="flex:1.4">
-  <div style="font-size:30px;font-weight:600;letter-spacing:-.025em;line-height:1.4">
+<div style="width:{SW}px;height:540px;padding:60px;display:flex;gap:64px;align-items:center">
+ <div style="flex:1.5">
+  <div style="font-size:32px;font-weight:600;letter-spacing:-.03em;line-height:1.38">
    &ldquo;We lost SNAP authorization once over two produce varieties nobody noticed
-   were gone. Now I photograph the invoice at the back door and I know before
-   the truck leaves.&rdquo;</div>
-  <div style="display:flex;align-items:center;gap:14px;margin-top:30px">
+   were gone. It took four months to get back. Now I photograph the invoice at the
+   back door and I know before the truck leaves.&rdquo;</div>
+  <div style="display:flex;align-items:center;gap:14px;margin-top:32px">
    <div style="width:46px;height:46px;border-radius:50%;background:{WASH};display:flex;
      align-items:center;justify-content:center;font-weight:600">RM</div>
    <div><div class=h2 style="font-size:16px">Rosa Medina</div>
-    <div class=mute style="font-size:14px;font-weight:500">Owner, Corner Market &mdash; 4 stores, Los Angeles</div></div>
-  </div></div>
- <div style="flex:1;display:flex;flex-direction:column;gap:34px;border-left:1px solid {LINE};
-   padding-left:56px">
-  {stat("20s", "from photo to scorecard")}
-  {stat("4", "staple categories checked every scan")}
-  {stat("0", "lines counted that Ledger wasn't sure about")}
- </div></div>""", SW, 620)
+    <div class=mute style="font-size:14px;font-weight:500">
+     Owner, Corner Market. Four stores in Los Angeles.</div></div></div></div>
+ <div class="card elev" style="flex:0 0 380px;padding:30px">
+  <div class=lbl style="color:{MUTE}">Since switching</div>
+  <div class=h1 style="font-size:64px;margin-top:12px">0</div>
+  <div style="font-size:16px;font-weight:600;margin-top:6px">
+   line items counted that Ledger wasn't certain about</div>
+  <div style="border-top:1px solid {LINE};margin-top:22px;padding-top:18px;display:flex;
+    justify-content:space-between;align-items:baseline">
+   <span class=mute style="font-size:14px;font-weight:500">Average scan</span>
+   <span class=h2 style="font-size:22px">20s</span></div></div>
+</div>""", SW, 600)
 
 
 def s06_pricing():
@@ -594,10 +622,10 @@ def s09_footer():
 
 SECTIONS = {
     "s01-nav.png": (s01_nav, SW, 110),
-    "s02-hero.png": (s02_hero, SW, 900),
+    "s02-hero.png": (s02_hero, SW, 790),
     "s03-how-it-works.png": (s03_how, SW, 760),
-    "s04-features.png": (s04_features, SW, 860),
-    "s05-social-proof.png": (s05_proof, SW, 620),
+    "s04-features.png": (s04_features, SW, 820),
+    "s05-social-proof.png": (s05_proof, SW, 540),
     "s06-pricing.png": (s06_pricing, SW, 900),
     "s07-faq.png": (s07_faq, SW, 790),
     "s08-cta.png": (s08_cta, SW, 460),

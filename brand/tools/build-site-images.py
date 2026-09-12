@@ -114,14 +114,9 @@ def page(body: str, w: int, h: int, extra: str = "") -> str:
 
 
 # --- shared data -------------------------------------------------------------
-LICENSES = [
-    ("SNAP Authorization", "ok", "Active", "Renews 14 Mar 2027"),
-    ("WIC Vendor Status", "warn", "Action needed", "Price list due in 9 days"),
-    ("County Health Permit", "bad", "Expired", "Lapsed 28 Aug 2026"),
-    ("Food Handler Cards", "warn", "4 of 7 current", "3 staff need renewal"),
-    ("Tobacco & ABC", "ok", "Active", "Renews 1 Jun 2027"),
-    ("Scales & Business Tax", "ok", "Active", "Certified 2 Feb 2026"),
-]
+# The scenario lives in site_kit so every mock in the repo agrees on the numbers.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from site_kit import LICENSES  # noqa: E402
 
 
 def sidebar() -> str:
@@ -140,20 +135,20 @@ def sidebar() -> str:
     )
 
 
-def ring(pct: int, size: int = 132) -> str:
+def ring(pct: int, size: int = 132, color: str = BLUE, sub: str = "ready") -> str:
     r = 54
     c = 2 * 3.14159 * r
     off = c * (1 - pct / 100)
     return (
         f'<svg width="{size}" height="{size}" viewBox="0 0 128 128" style="display:block">'
         f'<circle cx="64" cy="64" r="{r}" fill="none" stroke="{LINE}" stroke-width="13"/>'
-        f'<circle cx="64" cy="64" r="{r}" fill="none" stroke="{BLUE}" stroke-width="13"'
+        f'<circle cx="64" cy="64" r="{r}" fill="none" stroke="{color}" stroke-width="13"'
         f' stroke-linecap="round" stroke-dasharray="{c:.1f}" stroke-dashoffset="{off:.1f}"'
         f' transform="rotate(-90 64 64)"/>'
         f'<text x="64" y="60" text-anchor="middle" font-family="Archivo" font-size="30"'
         f' font-weight="700" fill="{INK}" letter-spacing="-1">{pct}%</text>'
         f'<text x="64" y="80" text-anchor="middle" font-family="Archivo" font-size="12"'
-        f' font-weight="500" fill="{MUTE}">ready</text></svg>'
+        f' font-weight="500" fill="{MUTE}">{sub}</text></svg>'
     )
 
 
@@ -183,19 +178,19 @@ def img_01_hero() -> tuple[str, int, int]:
   </div>
   <div style="display:flex;gap:18px">
    <div class=card style="flex:0 0 300px;padding:24px;display:flex;align-items:center;gap:20px">
-    {ring(68)}
+    {ring(75, 132, "#B3261E", "3 of 4")}
     <div><div class=h2 style="font-size:16px">Readiness</div>
      <div class=mute style="font-size:13px;margin-top:4px;font-weight:500;line-height:1.45">
-      2 items block<br>an inspection today</div></div></div>
+      Produce is short<br>of 3 varieties</div></div></div>
    <div class=card style="flex:1;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:14px">
     <div class=h2 style="font-size:16px">Next deadlines</div>
     <div style="display:flex;flex-direction:column;gap:11px">
      <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">
+      <span>Add 2 produce varieties</span><span style="color:#B3261E;font-weight:600">blocks review</span></div>
+     <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">
       <span>County Health Permit renewal</span><span style="color:#B3261E;font-weight:600">overdue 15 days</span></div>
      <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">
       <span>WIC shelf price list</span><span style="color:#8A5300;font-weight:600">9 days</span></div>
-     <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500">
-      <span>Food handler cards &times;3</span><span style="color:#8A5300;font-weight:600">22 days</span></div>
     </div></div>
   </div>
   <div class=card style="overflow:hidden">
@@ -250,8 +245,8 @@ def img_03_step2() -> tuple[str, int, int]:
     rows = "".join(license_row(*l, compact=True) for l in LICENSES[:5])
     return step_shell("See where you stand", "Every requirement, one screen.", f"""
 <div class=card style="padding:26px;display:flex;align-items:center;gap:22px">
- {ring(68, 120)}
- <div><div class=h2 style="font-size:19px">2 items block an inspection</div>
+ {ring(75, 120, "#B3261E", "3 of 4")}
+ <div><div class=h2 style="font-size:19px">Produce is 2 varieties short</div>
   <div class=mute style="font-size:14px;margin-top:6px;font-weight:500;line-height:1.5">
    One permit has lapsed and one filing<br>is due inside the week.</div></div></div>
 <div class=card style="overflow:hidden">{rows}</div>"""), 900, 907
