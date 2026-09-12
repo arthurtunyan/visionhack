@@ -10,8 +10,8 @@
   @keyframes lg-row{0%,12%{transform:scaleX(0)}30%,86%{transform:scaleX(1)}100%{transform:scaleX(0)}}
   @media (prefers-reduced-motion:reduce){.ledger-anim .bl,.ledger-anim .br,.ledger-anim .row{animation:none}}
   </style>
-  <path class="bl" d="M22 14 H12 V50 H22" fill="none" stroke="#000000" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path class="br" d="M42 14 H52 V50 H42" fill="none" stroke="#000000" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="bl" d="M22 14 H12 V50 H22" fill="none" stroke="#1B4DFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="br" d="M42 14 H52 V50 H42" fill="none" stroke="#1B4DFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
   <rect class="row r1" x="22" y="23" width="20" height="4.6" rx="2.3" fill="#000000"/>
   <rect class="row r2" x="22" y="30.2" width="13" height="4.6" rx="2.3" fill="#000000" opacity=".38"/>
   <rect class="row r3" x="22" y="37.4" width="16" height="4.6" rx="2.3" fill="#000000"/>

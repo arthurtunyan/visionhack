@@ -5,8 +5,9 @@
 **Brackets closing on three stock rows.** The brackets bound and verify; the rows
 are what was counted.
 
-Strictly monochrome: black `#000000` on white `#FFFFFF`. **There is no accent
-colour, and none may be introduced.**
+Two colours: black `#000000` and blue `#1B4DFF` on white `#FFFFFF`.
+**Blue is the accent and is used for the brackets only** — the rows stay black
+(white on the inverse cuts). Don't introduce a third colour.
 
 If you are an agent working on this repo, start here and with
 [`brand.json`](brand.json) — everything you need is in those two files.
@@ -66,7 +67,10 @@ The animated mark as a scanning / loading state:
 
 ## Rules
 
-- **Monochrome only.** Black on white. Never add an accent colour.
+- **Two colours only.** Black `#000000` and blue `#1B4DFF` on white, or the
+  inverse files on black. Never add a third colour.
+- **Blue is for the brackets only.** Never recolour the rows or the wordmark
+  blue, and never render the brackets in anything but `#1B4DFF`.
 - **Never distort.** No stretching, skewing, or rotating — scale proportionally.
 - **Never restyle.** No gradients, shadows, glows, or outlines. The 38% opacity
   on the middle row is part of the mark, not a styling choice.

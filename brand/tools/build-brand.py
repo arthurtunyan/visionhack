@@ -26,8 +26,13 @@ from pathlib import Path
 BRAND = Path(__file__).resolve().parents[1]
 LOGO, ICONS, SOCIAL = BRAND / "logo", BRAND / "icons", BRAND / "social"
 
-# --- palette. Monochrome by design; there is no accent colour. ---------------
+# --- palette. Two colours: black and blue, on white. -------------------------
+# BLUE is the accent and is used for the BRACKETS ONLY — the rows stay black
+# (white on the inverse cuts). This split is what survives 16px: a single blue
+# row disappears at small sizes, and a fully blue mark loses the contrast
+# between the brackets and the rows.
 INK = "#000000"
+BLUE = "#1B4DFF"
 PAPER = "#FFFFFF"
 
 # --- the mark ----------------------------------------------------------------
@@ -73,11 +78,18 @@ def num(v) -> str:
     return s if s else "0"
 
 
-def mark_body(fg: str, small: bool = False, animated: bool = False, indent: str = "  ") -> str:
+def mark_body(
+    bracket: str,
+    row: str,
+    small: bool = False,
+    animated: bool = False,
+    indent: str = "  ",
+) -> str:
+    """Brackets and rows are coloured independently — brackets carry the accent."""
     bl = ' class="bl"' if animated else ""
     br = ' class="br"' if animated else ""
     stroke = (
-        f'fill="none" stroke="{fg}" stroke-width="{STROKE_W}" '
+        f'fill="none" stroke="{bracket}" stroke-width="{STROKE_W}" '
         'stroke-linecap="round" stroke-linejoin="round"'
     )
     out = [
@@ -90,7 +102,7 @@ def mark_body(fg: str, small: bool = False, animated: bool = False, indent: str 
         out.append(
             f'{indent}<rect{cls} x="{num(r["x"])}" y="{num(r["y"])}" '
             f'width="{num(r["w"])}" height="{num(r["h"])}" rx="{num(r["rx"])}" '
-            f'fill="{fg}"{op}/>'
+            f'fill="{row}"{op}/>'
         )
     return "\n".join(out)
 
@@ -108,18 +120,18 @@ def style_block() -> str:
     return f"  <style>\n{ANIM_CSS}\n  </style>"
 
 
-def svg_mark(fg: str, *, small=False, animated=False, bg: str | None = None) -> str:
+def svg_mark(bracket: str, row: str, *, small=False, animated=False, bg: str | None = None) -> str:
     parts = [svg_open(64, 64, "0 0 64 64", "Ledger", animated=animated)]
     if animated:
         parts.append(style_block())
     if bg:
         parts.append(f'  <rect width="64" height="64" fill="{bg}"/>')
-    parts.append(mark_body(fg, small=small, animated=animated))
+    parts.append(mark_body(bracket, row, small=small, animated=animated))
     parts.append("</svg>\n")
     return "\n".join(parts)
 
 
-def svg_favicon(fg: str, bg: str, *, bordered: bool) -> str:
+def svg_favicon(bracket: str, row: str, bg: str, *, bordered: bool) -> str:
     """Small-size cut on a solid tile."""
     parts = [svg_open(64, 64, "0 0 64 64", "Ledger")]
     if bordered:
@@ -130,19 +142,19 @@ def svg_favicon(fg: str, bg: str, *, bordered: bool) -> str:
         )
     else:
         parts.append(f'  <rect width="64" height="64" rx="14" fill="{bg}"/>')
-    parts.append(mark_body(fg, small=True))
+    parts.append(mark_body(bracket, row, small=True))
     parts.append("</svg>\n")
     return "\n".join(parts)
 
 
-def svg_icon_tile(fg: str, bg: str, *, small: bool) -> str:
+def svg_icon_tile(bracket: str, row: str, bg: str, *, small: bool) -> str:
     """The square app-icon treatment: hairline-bordered tile, mark at 0.84."""
     parts = [
         svg_open(64, 64, "0 0 64 64", "Ledger"),
         f'  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.5" '
         f'fill="{bg}" stroke="{INK}" stroke-width="1.5"/>',
         '  <g transform="translate(32 32) scale(0.84) translate(-32 -32)">',
-        mark_body(fg, small=small, indent="    "),
+        mark_body(bracket, row, small=small, indent="    "),
         "  </g>",
         "</svg>\n",
     ]
@@ -157,7 +169,7 @@ def lockup_geometry() -> tuple[float, float, float]:
     return s, base, tx
 
 
-def svg_lockup(fg: str, *, animated=False, bg: str | None = None) -> str:
+def svg_lockup(bracket: str, row: str, word: str, *, animated=False, bg: str | None = None) -> str:
     wordmark = (LOGO / "wordmark.path").read_text(encoding="utf-8").strip()
     s, base, tx = lockup_geometry()
     parts = [svg_open(300, 80, "0 0 300 80", "Ledger", animated=animated)]
@@ -167,11 +179,11 @@ def svg_lockup(fg: str, *, animated=False, bg: str | None = None) -> str:
         parts.append(f'  <rect width="300" height="80" fill="{bg}"/>')
     parts += [
         '  <g transform="translate(6 12) scale(0.875)">',
-        mark_body(fg, animated=animated, indent="    "),
+        mark_body(bracket, row, animated=animated, indent="    "),
         "  </g>",
         # scale(s, -s) flips the font's y-up coordinates into SVG's y-down.
         f'  <g transform="translate({num(tx)} {num(base)}) scale({num(s)} {num(-s)})">',
-        f'    <path d="{wordmark}" fill="{fg}"/>',
+        f'    <path d="{wordmark}" fill="{word}"/>',
         "  </g>",
         "</svg>\n",
     ]
@@ -269,14 +281,14 @@ def main() -> int:
 
     # --- SVGs (source of truth) ---
     svgs = {
-        "ledger-mark.svg": svg_mark(INK),
-        "ledger-mark-inverse.svg": svg_mark(PAPER),
-        "ledger-mark-animated.svg": svg_mark(INK, animated=True),
-        "ledger-lockup.svg": svg_lockup(INK),
-        "ledger-lockup-inverse.svg": svg_lockup(PAPER),
-        "ledger-lockup-animated.svg": svg_lockup(INK, animated=True),
-        "favicon.svg": svg_favicon(INK, PAPER, bordered=True),
-        "favicon-inverse.svg": svg_favicon(PAPER, INK, bordered=False),
+        "ledger-mark.svg": svg_mark(BLUE, INK),
+        "ledger-mark-inverse.svg": svg_mark(BLUE, PAPER),
+        "ledger-mark-animated.svg": svg_mark(BLUE, INK, animated=True),
+        "ledger-lockup.svg": svg_lockup(BLUE, INK, INK),
+        "ledger-lockup-inverse.svg": svg_lockup(BLUE, PAPER, PAPER),
+        "ledger-lockup-animated.svg": svg_lockup(BLUE, INK, INK, animated=True),
+        "favicon.svg": svg_favicon(BLUE, INK, PAPER, bordered=True),
+        "favicon-inverse.svg": svg_favicon(BLUE, PAPER, INK, bordered=False),
     }
     for name, content in svgs.items():
         (LOGO / name).write_text(content, encoding="utf-8")
@@ -303,8 +315,8 @@ def main() -> int:
         return 0
 
     print(f"PNG  chromium: {chrome}")
-    tile_big = svg_icon_tile(INK, PAPER, small=False)
-    tile_small = svg_icon_tile(INK, PAPER, small=True)
+    tile_big = svg_icon_tile(BLUE, INK, PAPER, small=False)
+    tile_small = svg_icon_tile(BLUE, INK, PAPER, small=True)
 
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td)
