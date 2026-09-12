@@ -19,6 +19,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { decisionSignature } from "./smoke-signature.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -414,6 +415,9 @@ test("fresh-produce correction preserves explicit frozen, preserved and prepared
       { lineText: "DRIED TOMATOES", packSize: "3 CT", quantity: "1", legible: true },
       { lineText: "TOMATO SAUCE", packSize: "3 CT", quantity: "1", legible: true },
       { lineText: "POTATO CHIPS", packSize: "3 CT", quantity: "1", legible: true },
+      { lineText: "ONION POWDER", packSize: "3 CT", quantity: "1", legible: true },
+      { lineText: "TOMATO PUREE", packSize: "3 CT", quantity: "1", legible: true },
+      { lineText: "CRISPY FRIED ONIONS", packSize: "3 CT", quantity: "1", legible: true },
     ],
   };
   const items = raw.lines.map((line, index) => ({
@@ -435,8 +439,73 @@ test("fresh-produce correction preserves explicit frozen, preserved and prepared
 
   assert.deepEqual(
     result.items.map((item) => item.storage),
-    ["fresh", "shelf_stable", "frozen", "shelf_stable", "shelf_stable", "shelf_stable"],
+    [
+      "fresh",
+      "shelf_stable",
+      "frozen",
+      "shelf_stable",
+      "shelf_stable",
+      "shelf_stable",
+      "shelf_stable",
+      "shelf_stable",
+      "shelf_stable",
+    ],
   );
+});
+
+function signatureBody() {
+  return {
+    ok: true,
+    items: [{
+      description: "ROMA TOMATO",
+      category: "produce",
+      variety: "Roma Tomato",
+      quantity: 1,
+      packCount: 3,
+      stockingUnits: 3,
+      accessory: false,
+      storage: "fresh",
+      perishable: true,
+      confidence: 0.7,
+    }],
+    excluded: [{
+      description: "BOX",
+      category: "produce",
+      reason: "Low confidence (0.70).",
+    }],
+    varietyCounts: { dairy: 0, grains: 0, protein: 0, produce: 1 },
+    scorecard: {
+      overallStatus: "fail",
+      totalUnits: 3,
+      perishableCategoriesMet: 1,
+      categories: [{
+        category: "produce",
+        varietiesFound: 1,
+        unitsFound: 3,
+        hasPerishable: true,
+      }],
+    },
+  };
+}
+
+test("smoke consistency ignores confidence and free-form exclusion explanations", () => {
+  const first = signatureBody();
+  const second = structuredClone(first);
+  second.items[0].confidence = 0.71;
+  second.excluded[0].reason = "Insufficiently certain classification (0.71).";
+
+  assert.equal(decisionSignature(first), decisionSignature(second));
+});
+
+test("smoke consistency normalizes variety keys but detects changed grouping", () => {
+  const first = signatureBody();
+  const normalized = structuredClone(first);
+  normalized.items[0].variety = "  roma TOMATO  ";
+  const regrouped = structuredClone(first);
+  regrouped.items[0].variety = "hydro tomato";
+
+  assert.equal(decisionSignature(first), decisionSignature(normalized));
+  assert.notEqual(decisionSignature(first), decisionSignature(regrouped));
 });
 
 test("classification fails closed when item count or source-line order drifts", async () => {

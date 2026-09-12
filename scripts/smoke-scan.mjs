@@ -18,6 +18,7 @@ import { spawn } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { decisionSignature } from "./smoke-signature.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -124,40 +125,6 @@ function summarize(body) {
   console.log(`  varietyCounts: ${JSON.stringify(body.varietyCounts)}`);
   console.log(`  overallStatus: ${body.scorecard?.overallStatus}`);
   console.log(`  timingMs:      ${JSON.stringify(body.meta?.timingMs)}`);
-}
-
-/** Excludes model confidence and timing while retaining every scoring decision. */
-function decisionSignature(body) {
-  if (!body?.ok) return null;
-  return JSON.stringify({
-    items: body.items?.map((item) => ({
-      description: item.description,
-      category: item.category,
-      quantity: item.quantity,
-      packCount: item.packCount,
-      stockingUnits: item.stockingUnits,
-      accessory: item.accessory,
-      storage: item.storage,
-      perishable: item.perishable,
-    })),
-    excluded: body.excluded?.map((item) => ({
-      description: item.description,
-      reason: item.reason,
-      category: item.category,
-    })),
-    varietyCounts: body.varietyCounts,
-    scorecard: {
-      overallStatus: body.scorecard?.overallStatus,
-      totalUnits: body.scorecard?.totalUnits,
-      perishableCategoriesMet: body.scorecard?.perishableCategoriesMet,
-      categories: body.scorecard?.categories?.map((category) => ({
-        category: category.category,
-        varietiesFound: category.varietiesFound,
-        unitsFound: category.unitsFound,
-        hasPerishable: category.hasPerishable,
-      })),
-    },
-  });
 }
 
 /** Run the live scan `runs` times; every run and decision must agree. */

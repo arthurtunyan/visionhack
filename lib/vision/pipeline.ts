@@ -143,20 +143,26 @@ function parseExplicitPackCount(raw: string | null): number | null {
   return Number.isSafeInteger(value) ? value : null;
 }
 
-/** Commodities whose unpreserved printed form is unambiguously fresh produce. */
-const FRESH_PRODUCE_PATTERN =
+/** Whole-produce commodities eligible for a conservative storage correction. */
+const WHOLE_PRODUCE_COMMODITY_PATTERN =
   /\b(?:yams?|onions?|tomato(?:es)?|peppers?|cucumbers?|cabbages?|lettuce|celery|bananas?|broccoli)\b/i;
 
 /** Terms that make a produce line frozen, preserved, prepared or otherwise non-fresh. */
-const NON_FRESH_PRODUCE_PATTERN =
-  /\b(?:canned?|dried|dehydrated|frozen|juice|sauce|paste|soup|fruit\s*cups?|pickled|powdered|chips?)\b/i;
+const PREPARED_OR_PRESERVED_PRODUCE_PATTERN =
+  /\b(?:canned?|dried|dehydrated|freeze[-\s]?dried|frozen|pickled|preserved|fermented|smoked|roasted|fried|crispy|powder(?:ed)?|granules?|flakes?|chips?|rings?|sliced|diced|chopped|minced|shredded|mashed|juice|sauce|paste|pur[eé]e(?:d)?|soup|stew|ketchup|relish|salsa|chutney|jam|jelly|fruit\s*cups?|concentrate|extract|seasoning|spice|mix|instant|ready[-\s]?to[-\s]?eat)\b/i;
+
+function isUnambiguouslyFreshWholeProduce(sourceLineText: string): boolean {
+  return (
+    WHOLE_PRODUCE_COMMODITY_PATTERN.test(sourceLineText) &&
+    !PREPARED_OR_PRESERVED_PRODUCE_PATTERN.test(sourceLineText)
+  );
+}
 
 function reconcileStorage(item: Classification["items"][number], sourceLineText: string) {
   if (
     item.category === "produce" &&
     item.storage === "shelf_stable" &&
-    FRESH_PRODUCE_PATTERN.test(sourceLineText) &&
-    !NON_FRESH_PRODUCE_PATTERN.test(sourceLineText)
+    isUnambiguouslyFreshWholeProduce(sourceLineText)
   ) {
     return "fresh" as const;
   }
