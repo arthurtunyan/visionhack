@@ -284,10 +284,10 @@ export const PRICING: PricingPlan[] = [
 ];
 
 export const NAV_LINKS = [
-  { href: "/industries/grocery-convenience", label: "Industries" },
-  { href: "/coverage", label: "Coverage" },
+  { href: "/coverage", label: "Products" },
+  { href: "/industries/grocery-convenience", label: "Features" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/faq", label: "FAQ" },
+  { href: "/faq", label: "Blogs" },
 ];
 
 export const FOOTER_COLUMNS = [

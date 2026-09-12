@@ -35,7 +35,7 @@ export function CountUp({ to, duration = 0.6, className }: CountUpProps) {
 
   return (
     <span ref={ref} className={className}>
-      {value}
+      {value.toLocaleString("en-US")}
     </span>
   );
 }

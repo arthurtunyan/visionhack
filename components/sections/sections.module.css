@@ -76,6 +76,13 @@
   color: var(--mute);
   margin-bottom: 36px;
 }
+.heroStat {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--mute);
+  margin-bottom: 30px;
+}
 .heroButtons {
   display: flex;
   gap: 14px;

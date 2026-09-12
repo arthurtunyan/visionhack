@@ -3,12 +3,16 @@
 import { motion, useReducedMotion } from "motion/react";
 import { AppWindow } from "@/components/AppWindow";
 import { Button } from "@/components/Button";
-import { Logo } from "@/components/Logo";
+import { CountUp } from "@/components/CountUp";
 import { DashboardMock } from "./DashboardMock";
 import styles from "./sections.module.css";
 
 const EASE = [0.22, 0.68, 0.28, 1] as const;
-const TRUST = ["No integration", "Works from a phone photo", "First store free"];
+const TRUST = [
+  "Eight licenses, one dashboard",
+  "Set up in ten minutes",
+  "English and Spanish",
+];
 
 export function Hero() {
   const reduce = useReducedMotion();
@@ -28,27 +32,32 @@ export function Hero() {
 
       <div className={styles.heroInner}>
         <motion.span className={styles.heroPill} {...rise(0)}>
-          <Logo variant="mark" height={19} />
-          <span className="eyebrow">18 programmes · federal, state and local</span>
+          <span>ledger · the ai compliance layer for small stores</span>
         </motion.span>
 
         <motion.h1 className={`display-xl ${styles.heroTitle}`} {...rise(0.05)}>
-          Every permit your store holds.
+          Keep every license
           <br />
-          One place. One calendar.
+          your store runs on.
         </motion.h1>
 
         <motion.p className={`body-l ${styles.heroBody}`} {...rise(0.1)}>
-          Ledger tracks the licences, filings and stocking rules a small retailer
-          is judged on, and tells you which one is about to fail.
+          SNAP, WIC, county health, food handler, tobacco, ABC, scales, business
+          tax. Enter each license once and ledger tracks every renewal, flags what
+          is expiring, and checks your stocking against the USDA rule that hits
+          November 4.
         </motion.p>
+
+        <motion.div className={styles.heroStat} {...rise(0.12)}>
+          <CountUp to={117000} />
+        </motion.div>
 
         <motion.div className={styles.heroButtons} {...rise(0.15)}>
           <Button href="/demo" size="lg">
-            Start Free
+            Open the demo
           </Button>
           <Button href="/demo" variant="secondary" size="lg">
-            See a Sample Scan
+            See the rule
           </Button>
         </motion.div>
 

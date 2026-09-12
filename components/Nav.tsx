@@ -41,10 +41,7 @@ export function Nav() {
         </nav>
 
         <div className={styles.actions}>
-          <Link href="/demo" className={styles.link}>
-            Sign in
-          </Link>
-          <Button href="/demo">Start Free</Button>
+          <Button href="/demo">Book a Demo</Button>
         </div>
 
         <button
@@ -72,7 +69,7 @@ export function Nav() {
             </Link>
           ))}
           <Button href="/demo" size="lg" className={styles.mobileCta}>
-            Start Free
+            Book a Demo
           </Button>
         </div>
       ) : null}
