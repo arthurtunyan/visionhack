@@ -304,6 +304,10 @@ test("classification reconciles the supplied produce invoice to explicit counts 
     () => jsonResponse(toolCompletion(CLASSIFY_TOOL, JSON.stringify({ items: unsafeItems }))),
     () => classifyLines(raw),
   );
+  assert.deepEqual(
+    classified.items.map((item) => item.storage),
+    Array(raw.lines.length).fill("fresh"),
+  );
   const partitioned = partitionClassifiedItems(classified.items);
 
   assert.deepEqual(
@@ -418,6 +422,9 @@ test("fresh-produce correction preserves explicit frozen, preserved and prepared
       { lineText: "ONION POWDER", packSize: "3 CT", quantity: "1", legible: true },
       { lineText: "TOMATO PUREE", packSize: "3 CT", quantity: "1", legible: true },
       { lineText: "CRISPY FRIED ONIONS", packSize: "3 CT", quantity: "1", legible: true },
+      { lineText: "TOMATOES IN BRINE", packSize: "3 CT", quantity: "1", legible: true },
+      { lineText: "BANANA FLOUR", packSize: "3 CT", quantity: "1", legible: true },
+      { lineText: "TOMATOES CAN", packSize: "3 CT", quantity: "1", legible: true },
     ],
   };
   const items = raw.lines.map((line, index) => ({
@@ -443,6 +450,9 @@ test("fresh-produce correction preserves explicit frozen, preserved and prepared
       "fresh",
       "shelf_stable",
       "frozen",
+      "shelf_stable",
+      "shelf_stable",
+      "shelf_stable",
       "shelf_stable",
       "shelf_stable",
       "shelf_stable",

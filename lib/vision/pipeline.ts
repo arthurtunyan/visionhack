@@ -143,19 +143,47 @@ function parseExplicitPackCount(raw: string | null): number | null {
   return Number.isSafeInteger(value) ? value : null;
 }
 
-/** Whole-produce commodities eligible for a conservative storage correction. */
-const WHOLE_PRODUCE_COMMODITY_PATTERN =
-  /\b(?:yams?|onions?|tomato(?:es)?|peppers?|cucumbers?|cabbages?|lettuce|celery|bananas?|broccoli)\b/i;
+/**
+ * Full descriptions recognized as whole produce after known invoice metadata
+ * is removed. Unknown words intentionally fail closed instead of relying on a
+ * finite blacklist of prepared-food terms.
+ */
+const WHOLE_PRODUCE_DESCRIPTION_PATTERNS = [
+  /^(?:(?:organic|fresh)\s+)*(?:(?:garnet|jewel|purple|white|sweet)\s+)?yams?(?:\s+(?:louisiana|mississippi)){0,2}$/,
+  /^(?:(?:organic|fresh)\s+)*(?:(?:cooking|yellow|red|white|sweet|vidalia|spanish|pearl|green|spring)\s+)?onions?$/,
+  /^(?:(?:organic|fresh)\s+)*(?:(?:roma|hydro|grape|cherry|plum|beefsteak|heirloom|green|red)\s+)?tomato(?:es)?(?:\s+(?:cluster|vine|grape)){0,2}$/,
+  /^(?:(?:organic|fresh)\s+)*(?:(?:green|red|yellow|orange)\s+)?(?:(?:bell|sweet|chili|jalapeno|poblano)\s+)?peppers?(?:\s+(?:ex\s+large|extra\s+large|large|medium|small))?$/,
+  /^(?:(?:organic|fresh)\s+)*(?:(?:select|english|persian|mini|seedless|garden|pickling)\s+)?cucumbers?$/,
+  /^(?:(?:organic|fresh)\s+)*(?:(?:green|red|napa|savoy)\s+)?cabbages?$/,
+  /^(?:(?:organic|fresh)\s+)*(?:(?:romaine|iceberg|green\s+leaf|red\s+leaf|butter|bibb|head)\s+)?lettuce(?:\s+(?:head|hearts?))?$/,
+  /^(?:(?:organic|fresh)\s+)*celery(?:\s+(?:hearts?|stalks?|bunches?))?$/,
+  /^(?:(?:organic|fresh)\s+)*(?:(?:green|yellow|ripe|baby)\s+)?bananas?$/,
+  /^(?:(?:organic|fresh)\s+)*(?:baby\s+)?broccoli(?:\s+(?:crowns?|bunches?))?$/,
+];
 
-/** Terms that make a produce line frozen, preserved, prepared or otherwise non-fresh. */
-const PREPARED_OR_PRESERVED_PRODUCE_PATTERN =
-  /\b(?:canned?|dried|dehydrated|freeze[-\s]?dried|frozen|pickled|preserved|fermented|smoked|roasted|fried|crispy|powder(?:ed)?|granules?|flakes?|chips?|rings?|sliced|diced|chopped|minced|shredded|mashed|juice|sauce|paste|pur[eé]e(?:d)?|soup|stew|ketchup|relish|salsa|chutney|jam|jelly|fruit\s*cups?|concentrate|extract|seasoning|spice|mix|instant|ready[-\s]?to[-\s]?eat)\b/i;
+function normalizeWholeProduceDescription(sourceLineText: string): string {
+  return sourceLineText
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/^\s*\d+\s+/, " ")
+    .replace(
+      /\b\d+(?:\.\d+)?\s*(?:x|\/)\s*\d+(?:\.\d+)?(?:\s*(?:fl\s*oz|oz|lbs?|#|gal|qts?|pts?|ml|l))?(?=\s|$)/gi,
+      " ",
+    )
+    .replace(
+      /\b\d+(?:\.\d+)?\s*(?:ct|count|ea|each|rolls?|units?|packs?|fl\s*oz|oz|lbs?|#|gal|qts?|pts?|ml|l)(?=\s|$)/gi,
+      " ",
+    )
+    .replace(/\b(?:cello\s+wrap|no\s+sleeve|pints?|bushels?|box(?:es)?)\b/gi, " ")
+    .replace(/[^a-z]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
 
 function isUnambiguouslyFreshWholeProduce(sourceLineText: string): boolean {
-  return (
-    WHOLE_PRODUCE_COMMODITY_PATTERN.test(sourceLineText) &&
-    !PREPARED_OR_PRESERVED_PRODUCE_PATTERN.test(sourceLineText)
-  );
+  const description = normalizeWholeProduceDescription(sourceLineText);
+  return WHOLE_PRODUCE_DESCRIPTION_PATTERNS.some((pattern) => pattern.test(description));
 }
 
 function reconcileStorage(item: Classification["items"][number], sourceLineText: string) {
