@@ -128,7 +128,7 @@ git diff
 Expected: only the planned documentation files and the source-comment pointer
 are changed; no secret or environment file appears.
 
-- [ ] **Step 3: Commit the verified change**
+- [x] **Step 3: Commit the verified change**
 
 Run:
 
@@ -137,7 +137,7 @@ git add docs/framer-copy-handoff.md docs/framer-image-handoff.md docs/regulatory
 git commit -m "docs: align product claims with live capabilities"
 ```
 
-- [ ] **Step 4: Push and open a pull request**
+- [x] **Step 4: Push and open a pull request**
 
 Push `codex/align-product-claims` to `origin` and open a pull request against
 `main` summarizing the capability corrections, citations, and verification.
