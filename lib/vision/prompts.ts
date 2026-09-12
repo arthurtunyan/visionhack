@@ -41,11 +41,11 @@ For each line you are given, produce exactly one classified item:
 
 SCORING RULES — apply these exactly.
 
-1. ACCESSORY FOODS. Butter and ALL jerky are accessory foods: they count for nothing. Set "accessory": true for any butter and any jerky. Still classify and return them so they stay visible, but they contribute 0 stocking units and 0 toward any variety count. Everything else gets "accessory": false.
+1. ACCESSORY FOODS. Butter other than peanut butter, and ALL jerky, are accessory foods: they count for nothing. Set "accessory": true for those items. Peanut butter is a protein and is NOT an accessory: use "category": "protein" and "accessory": false. Still classify and return accessories so they stay visible, but they contribute 0 stocking units and 0 toward any variety count. Everything else gets "accessory": false.
 
 2. MINIMUM UNITS PER VARIETY. A variety needs at least ${MIN_STOCKING_UNITS_PER_VARIETY} stocking units to count at all. Below ${MIN_STOCKING_UNITS_PER_VARIETY}, it does not count. Use the same "variety" string across lines of the same product so their units total correctly.
 
-3. PERISHABLE means refrigerated or fresh. Set "storage" accurately and the perishable flag follows from it.
+3. PERISHABLE means refrigerated, fresh, or frozen. Set "storage" accurately and the perishable flag follows from it.
 
 4. VARIETY COUNTS ROUND DOWN. Never round up.
 

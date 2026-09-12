@@ -215,6 +215,47 @@ test("accessory foods never count", async (t) => {
     assert.equal(protein.varietiesFound, 0);
     assert.deepEqual(protein.items, []);
   });
+
+  await t.test("peanut butter is corrected for callers that skip partitioning", () => {
+    const peanutButter = {
+      description: "Store Brand Creamy Peanut Butter, 18 oz",
+      category: "dairy",
+      variety: "peanut butter",
+      quantity: 3,
+      packCount: 1,
+      stockingUnits: 3,
+      accessory: true,
+      storage: "shelf_stable",
+      perishable: false,
+      confidence: 1,
+    };
+
+    const result = buildScanResult([peanutButter], "Test Store", SCAN_DATE);
+    assert.equal(category(result, "dairy").varietiesFound, 0);
+    assert.equal(category(result, "protein").varietiesFound, 1);
+    assert.equal(category(result, "protein").unitsFound, 3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+test("frozen storage is re-checked as perishable for direct scorecard callers", () => {
+  const frozenChicken = {
+    description: "Frozen Chicken Breast, 2 lb",
+    category: "protein",
+    variety: "chicken breast",
+    quantity: 3,
+    packCount: 1,
+    stockingUnits: 3,
+    accessory: false,
+    storage: "frozen",
+    // Deliberately stale: the deterministic engine must derive this from storage.
+    perishable: false,
+    confidence: 1,
+  };
+
+  const result = buildScanResult([frozenChicken], "Test Store", SCAN_DATE);
+  assert.equal(category(result, "protein").hasPerishable, true);
+  assert.equal(result.perishableCategoriesMet, 1);
 });
 
 // ---------------------------------------------------------------------------

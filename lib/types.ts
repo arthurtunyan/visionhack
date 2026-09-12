@@ -28,10 +28,10 @@ export interface ScanItem {
   packCount: number | null;
   /** quantity × packCount, forced to 0 for accessory foods. */
   stockingUnits: number;
-  /** Butter and all jerky. Counts for nothing, but stays visible. */
+  /** Butter other than peanut butter, and all jerky. Counts for nothing, but stays visible. */
   accessory: boolean;
   storage: StorageState;
-  /** Refrigerated or fresh. */
+  /** Refrigerated, fresh, or frozen. */
   perishable: boolean;
   /** 0..1 — already filtered to >= MIN_COUNTED_CONFIDENCE. */
   confidence: number;
