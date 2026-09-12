@@ -10,6 +10,8 @@
     "plugins": []
   },
   "include": [
+    "lib/compliance.ts",
+    "lib/store.ts",
     "lib/rules/constants.ts",
     "lib/rules/partition.ts",
     "lib/rule-engine.ts",

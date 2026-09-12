@@ -1,10 +1,11 @@
-/**
- * Minimal root layout. This repo is API-only — the real frontend lives on
- * Framer and calls /api/scan cross-origin. Do not grow this into a UI.
- */
-export const metadata = {
-  title: "VisionHack API",
-  description: "Invoice scanning API. The frontend is hosted separately on Framer.",
+import type { Metadata } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "ledger — compliance for small stores",
+  description:
+    "Track every licence, permit and deadline a Los Angeles corner store answers to, " +
+    "and score an invoice against the USDA SNAP staple-stocking standard.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
