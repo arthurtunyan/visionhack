@@ -75,7 +75,7 @@ npm run dev        # dev server
 npm run build      # production build
 npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
-npm test           # scoring-rule and rule-engine tests — no server, no API key
+npm test           # unit and API-contract tests — no server, no API key
 npm run smoke      # end-to-end check (run `npm run build` first)
 ```
 
@@ -97,6 +97,7 @@ Other forms:
 
 ```bash
 npm run smoke -- ./path/to/invoice.jpg            # your own image
+npm run smoke -- ./path/to/invoice.jpg --runs 3   # repeat the live scan
 npm run smoke -- --url https://<app>.vercel.app   # hit the deployed route
 ```
 

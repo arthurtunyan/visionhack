@@ -170,8 +170,12 @@ Two passes, deliberately not one:
 
 1. **extract** (temperature 0) — transcribe printed lines verbatim. No
    interpretation. Invoices are printed text, so this is near-deterministic.
-2. **classify** (default temperature) — categorize, name the variety, size the
-   pack, flag perishability, score confidence.
+2. **classify** (temperature 0) — categorize, name the variety, size the pack,
+   flag perishability, score confidence.
+
+Both passes disable model reasoning (`{ effort: "none", exclude: true }`). The
+task is transcription and bookkeeping, and both calls must fit within the
+route's shared 60-second execution budget.
 
 Splitting them stops transcription errors from being laundered into
 confident-looking classifications.
@@ -185,11 +189,11 @@ one-line change.
 Pass 1 sends the image as an `image_url` content part holding a
 `data:<mediaType>;base64,...` URL, placed before the text part.
 
-**Structure comes from forced tool calling, not `response_format`.** Nemotron
-accepts images and supports `tools` / `tool_choice`, but does **not** support
-`response_format` — sending it alongside `provider.require_parameters` gets the
-request rejected before inference. So each pass instead declares exactly one
-function and forces it:
+**Structure comes from a single declared tool, not `response_format`.**
+Nemotron accepts images and `tools`, but does **not** support
+`response_format`. Its sole live provider also currently rejects every explicit
+`tool_choice` value before inference. Each pass therefore declares exactly one
+function and omits `tool_choice`:
 
 | Pass | Function | Parameters from |
 |---|---|---|
@@ -198,10 +202,9 @@ function and forces it:
 
 The `parameters` schema is generated from those Zod schemas with
 `z.toJSONSchema` (the `$schema` dialect key is stripped) — there is no
-handwritten second copy to drift. The call is forced with
-`tool_choice: { type: "function", function: { name } }`, and
-`provider: { require_parameters: true }` keeps OpenRouter from routing to a
-provider that would ignore `tool_choice` and answer with prose.
+handwritten second copy to drift. `provider: { require_parameters: true }`
+keeps OpenRouter from routing to a provider that would ignore the declared
+tool.
 
 The reply is read from `choices[0].message.tool_calls`: exactly one call, under
 exactly the expected name, whose `function.arguments` parses as JSON and passes
@@ -211,6 +214,16 @@ response nothing constrains.
 
 Missing, duplicate, wrong-name, malformed or off-schema tool calls all fail
 closed as `502 unparseable_model_output`, never a partially-filled scorecard.
+
+After classification, code ties every result back to the corresponding raw
+line by exact count, order, and text. Quantity and pack count are replaced with
+values parsed conservatively from the transcription: explicit counts such as
+`24 ct`, `16 / 3 #`, `24 x 12 OZ`, and `6/1 GAL` are accepted; weights, grades,
+and container-only descriptions such as `40 #`, `4x4`, `pint`, `bushel`, and
+`box` remain unknown and are excluded. A tight commodity check also corrects
+obvious unpreserved produce to `fresh` without changing canned, frozen, dried,
+or prepared foods. This prevents a schema-valid model guess from inflating the
+scorecard.
 
 Tunables (the four scoring rules, confidence threshold, pack math, size cap,
 CORS origins, model) all live in

@@ -25,8 +25,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 let remoteUrl = null;
 let imagePath = resolve(root, "fixtures/sample-invoice.png");
-// Forced tool calling either works every time or it doesn't. --runs N repeats
-// the live scan so a one-off success isn't mistaken for reliability.
+// The declared-tool/strict-parser contract must work every time. --runs N
+// repeats the live scan so a one-off success isn't mistaken for reliability.
 let runs = 1;
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === "--url") remoteUrl = argv[++i];
@@ -126,11 +126,53 @@ function summarize(body) {
   console.log(`  timingMs:      ${JSON.stringify(body.meta?.timingMs)}`);
 }
 
-/** Run the live scan `runs` times; every run must pass. */
+/** Excludes model confidence and timing while retaining every scoring decision. */
+function decisionSignature(body) {
+  if (!body?.ok) return null;
+  return JSON.stringify({
+    items: body.items?.map((item) => ({
+      description: item.description,
+      category: item.category,
+      quantity: item.quantity,
+      packCount: item.packCount,
+      stockingUnits: item.stockingUnits,
+      accessory: item.accessory,
+      storage: item.storage,
+      perishable: item.perishable,
+    })),
+    excluded: body.excluded?.map((item) => ({
+      description: item.description,
+      reason: item.reason,
+      category: item.category,
+    })),
+    varietyCounts: body.varietyCounts,
+    scorecard: {
+      overallStatus: body.scorecard?.overallStatus,
+      totalUnits: body.scorecard?.totalUnits,
+      perishableCategoriesMet: body.scorecard?.perishableCategoriesMet,
+      categories: body.scorecard?.categories?.map((category) => ({
+        category: category.category,
+        varietiesFound: category.varietiesFound,
+        unitsFound: category.unitsFound,
+        hasPerishable: category.hasPerishable,
+      })),
+    },
+  });
+}
+
+/** Run the live scan `runs` times; every run and decision must agree. */
 async function runScanRepeatedly(base) {
+  const signatures = [];
   for (let i = 1; i <= runs; i++) {
     if (runs > 1) console.log(`\n  --- run ${i} of ${runs} ---`);
-    await runScan(base);
+    signatures.push(decisionSignature(await runScan(base)));
+  }
+  if (runs > 1) {
+    const first = signatures[0];
+    check(
+      "repeated scans agree on decision-critical output",
+      first !== null && signatures.every((signature) => signature === first),
+    );
   }
 }
 

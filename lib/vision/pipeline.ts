@@ -6,15 +6,17 @@
  *                     perishability.
  *
  * Splitting them keeps transcription errors from being laundered into
- * confident-looking classifications. Both run at temperature 0: this is
- * transcription and bookkeeping, not prose.
+ * confident-looking classifications. Both run at temperature 0 with reasoning
+ * disabled: this is transcription and bookkeeping, not prose, and both passes
+ * must fit inside the route's shared latency budget.
  *
  * HOW THE STRUCTURE IS ENFORCED. The model (Nemotron) accepts images and
  * supports tools, but NOT `response_format`, so asking for structured outputs
  * would be rejected before inference. Instead each pass declares exactly one
- * function, generated from the Zod schema in ./schemas, and forces it with
- * `tool_choice`. The answer is read from `tool_calls[0].function.arguments`
- * and validated with that same schema.
+ * function generated from the Zod schema in ./schemas. Nemotron's sole live
+ * provider currently rejects every explicit `tool_choice` value, so the
+ * request omits that field. The answer is read from
+ * `tool_calls[0].function.arguments` and validated with that same schema.
  *
  * `message.content` is IGNORED on purpose. A reasoning model emits prose next
  * to its tool call; treating that as data would be trusting the one part of
@@ -104,10 +106,102 @@ interface PassOptions<T> {
   stage: string;
   systemPrompt: string;
   userContent: string | ContentPart[];
-  /** The one function this pass declares and forces. */
+  /** The one function this pass declares and expects the model to call. */
   toolName: string;
   toolDescription: string;
   schema: z.ZodType<T>;
+}
+
+/** Parse a printed whole-number quantity without accepting numeric prefixes. */
+function parsePrintedQuantity(raw: string | null): number | null {
+  if (raw === null) return null;
+  const match = raw.trim().match(/^([1-9]\d*)(?:\.0+)?$/);
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isSafeInteger(value) ? value : null;
+}
+
+/**
+ * Return only an explicitly printed sellable-unit count.
+ *
+ * Accepted examples: 24 CT, 30 ROLL, 6/1 GAL, 16 / 3 #,
+ * 24 x 5.3 OZ. Weight-only, grade and container descriptions such as 40 #,
+ * 4x4, pint, bushel and box deliberately return null.
+ */
+function parseExplicitPackCount(raw: string | null): number | null {
+  if (raw === null) return null;
+  const normalized = raw.trim().replace(/\s+/g, " ");
+  const countOnly = normalized.match(
+    /^([1-9]\d*)\s*(?:ct|count|ea|each|rolls?|units?|packs?)$/i,
+  );
+  const multipack = normalized.match(
+    /^([1-9]\d*)\s*(?:x|\/)\s*\d+(?:\.\d+)?\s*(?:fl\s*oz|oz|lbs?|#|gal|qts?|pts?|ml|l)$/i,
+  );
+  const match = countOnly ?? multipack;
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isSafeInteger(value) ? value : null;
+}
+
+/** Commodities whose unpreserved printed form is unambiguously fresh produce. */
+const FRESH_PRODUCE_PATTERN =
+  /\b(?:yams?|onions?|tomato(?:es)?|peppers?|cucumbers?|cabbages?|lettuce|celery|bananas?|broccoli)\b/i;
+
+/** Terms that make a produce line frozen, preserved, prepared or otherwise non-fresh. */
+const NON_FRESH_PRODUCE_PATTERN =
+  /\b(?:canned?|dried|dehydrated|frozen|juice|sauce|paste|soup|fruit\s*cups?|pickled|powdered|chips?)\b/i;
+
+function reconcileStorage(item: Classification["items"][number], sourceLineText: string) {
+  if (
+    item.category === "produce" &&
+    item.storage === "shelf_stable" &&
+    FRESH_PRODUCE_PATTERN.test(sourceLineText) &&
+    !NON_FRESH_PRODUCE_PATTERN.test(sourceLineText)
+  ) {
+    return "fresh" as const;
+  }
+  return item.storage;
+}
+
+/**
+ * Bind pass 2 back to pass 1 and replace model-guessed factors with values
+ * parsed from the transcription. This is the hard safety boundary before the
+ * deterministic partition/rule engine sees model output.
+ */
+function reconcileClassification(
+  raw: RawExtraction,
+  classified: Classification,
+): Classification {
+  if (classified.items.length !== raw.lines.length) {
+    throw new ScanPipelineError(
+      "unparseable_model_output",
+      `The model returned ${classified.items.length} classifications for ${raw.lines.length} extracted lines.`,
+      502,
+    );
+  }
+
+  return {
+    items: classified.items.map((item, index) => {
+      const source = raw.lines[index];
+      if (item.sourceLineText !== source.lineText) {
+        throw new ScanPipelineError(
+          "unparseable_model_output",
+          `The model changed or reordered an extracted source line during classification.`,
+          502,
+        );
+      }
+
+      return {
+        ...item,
+        quantity: parsePrintedQuantity(source.quantity),
+        packCount: parseExplicitPackCount(source.packSize),
+        storage: reconcileStorage(item, source.lineText),
+        excludeReason: source.legible
+          ? item.excludeReason
+          : "The transcribed line was not fully legible.",
+      };
+    }),
+  };
 }
 
 /**
@@ -176,7 +270,7 @@ interface ToolCall {
 }
 
 /**
- * One forced-tool round trip: build the request, map transport and HTTP
+ * One tool-enabled round trip: build the request, map transport and HTTP
  * failures, then hold the tool call to the Zod schema before anything
  * downstream sees it.
  */
@@ -194,6 +288,7 @@ async function runPass<T>({
     model: MODEL,
     max_tokens: MAX_TOKENS,
     temperature: MODEL_TEMPERATURE,
+    reasoning: { effort: "none", exclude: true },
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userContent },
@@ -209,10 +304,11 @@ async function runPass<T>({
         },
       },
     ],
-    // Forced, not "auto" / "required": the model must call THIS function.
-    tool_choice: { type: "function", function: { name: toolName } },
-    // Keeps OpenRouter from routing to a provider that would drop tool_choice
-    // on the floor and answer with prose instead.
+    // Do not send tool_choice: Nemotron's sole live provider accepts `tools`
+    // but currently rejects every explicit tool_choice value before inference.
+    // The response parser below still fails closed unless the model calls this
+    // one declared function exactly once with schema-valid arguments.
+    // Keeps OpenRouter from routing to a provider that would drop `tools`.
     provider: { require_parameters: true },
   };
 
@@ -350,7 +446,7 @@ export async function extractRawLines(
 export async function classifyLines(raw: RawExtraction): Promise<Classification> {
   if (raw.lines.length === 0) return { items: [] };
 
-  return runPass({
+  const classified = await runPass({
     stage: "classification",
     systemPrompt: CLASSIFY_SYSTEM_PROMPT,
     userContent: `Classify these transcribed invoice lines:\n\n${JSON.stringify(
@@ -363,4 +459,5 @@ export async function classifyLines(raw: RawExtraction): Promise<Classification>
       "Submit one classified item for each transcribed invoice line, in order.",
     schema: ClassificationSchema,
   });
+  return reconcileClassification(raw, classified);
 }
