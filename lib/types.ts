@@ -7,7 +7,8 @@
  * THE C BOUNDARY: classified items and qualifying-variety counts come from
  * this route's pipeline. The pass/fail verdict comes from Role C's rule engine
  * (lib/rule-engine.ts), which the route runs over `items` and returns as
- * `scorecard`. Its ScanResult shape is defined in lib/mock-data.ts.
+ * `scorecard`, plus a Spanish copy as `scorecardEs`. Its ScanResult shape is
+ * defined in lib/mock-data.ts.
  */
 import type { ScanResult } from "./mock-data";
 import type { Category, StorageState } from "./rules/constants";
@@ -70,6 +71,12 @@ export interface ScanSuccess {
   varietyCounts: VarietyCountsByCategory;
   /** Role C's pass/fail scorecard and fix list, built from `items`. */
   scorecard: ScanResult;
+  /**
+   * The same scorecard with Spanish category labels and fix text. Numbers,
+   * items and fix order match `scorecard`, so the UI can switch language
+   * without scanning again.
+   */
+  scorecardEs: ScanResult;
   meta: ScanMeta;
 }
 

@@ -3,7 +3,8 @@
  *
  * Role boundaries: the vision pipeline and partition step produce clean,
  * classified items. Role C's rule engine scores `items` (never `excluded`)
- * into the pass/fail scorecard, returned as `scorecard`.
+ * into the pass/fail scorecard, returned as `scorecard` (English) and
+ * `scorecardEs` (Spanish).
  */
 import { NextResponse } from "next/server";
 
@@ -171,13 +172,16 @@ export async function POST(req: Request) {
     const classifyMs = Date.now() - classifyStart;
 
     const { items, excluded, varietyCounts } = partitionClassifiedItems(classified.items);
+    // One timestamp, so both scorecards carry the same date.
+    const scannedAt = new Date();
 
     const payload: ScanSuccess = {
       ok: true,
       items,
       excluded,
       varietyCounts,
-      scorecard: buildScanResult(items, storeName),
+      scorecard: buildScanResult(items, storeName, scannedAt),
+      scorecardEs: buildScanResult(items, storeName, scannedAt, "es"),
       meta: {
         model: MODEL,
         rawLineCount: raw.lines.length,

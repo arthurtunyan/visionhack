@@ -112,7 +112,10 @@ curl -sS -X POST https://<app>.vercel.app/api/scan \
 `POST /api/scan` is documented in [docs/api-scan.md](docs/api-scan.md), including
 the request shape and the response TypeScript type for wiring up the Framer
 button. The response's `scorecard` is the pass/fail `ScanResult` built by the
-rule engine in [lib/rule-engine.ts](lib/rule-engine.ts).
+rule engine in [lib/rule-engine.ts](lib/rule-engine.ts), and `scorecardEs` is
+the same scorecard in Spanish. Scorecard text in both languages is in
+[lib/scorecard-copy.ts](lib/scorecard-copy.ts); Spanish labels for the Framer
+screens are in [docs/spanish-strings.md](docs/spanish-strings.md).
 
 ## Contributing
 
