@@ -5,6 +5,9 @@
 .eyebrow {
   color: var(--blue);
   margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .title {
   margin-bottom: 26px;
