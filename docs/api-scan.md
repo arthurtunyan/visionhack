@@ -226,6 +226,18 @@ corrects recognized whole produce to `fresh`; unknown or prepared descriptions
 preserve the model's storage classification instead of being guessed. This
 prevents a schema-valid model guess from inflating the scorecard.
 
+Produce invoices often print the case count inside the description rather than
+in a pack column (`Lettuce, Head 24 ct Cello Wrap`). When the pack field holds
+no explicit count, a line that passes the same whole-produce allowlist takes
+exactly one explicit count found in its description or pack field, judged by
+the same parser. No count, or two different counts, stays unknown. Packaged
+goods never use this fallback, because a count in their name (`Tortillas 10 ct`)
+usually describes one retail pack, not the case.
+
+An excluded line's `reason` names the missing factor: `Could not determine the
+pack count.`, `Could not read the quantity.`, or `Could not determine pack size
+or quantity.` when neither resolved.
+
 Tunables (the four scoring rules, confidence threshold, pack math, size cap,
 CORS origins, model) all live in
 [`lib/rules/constants.ts`](../lib/rules/constants.ts). There are no magic

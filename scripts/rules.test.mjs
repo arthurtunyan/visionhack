@@ -216,7 +216,23 @@ test("exclusion paths — undercounting is safer than overcounting", async (t) =
       line({ category: "produce", variety: "roma tomato", packCount: null }),
     ]);
     assert.equal(items.length, 0);
-    assert.match(excluded[0].reason, /pack size or quantity/i);
+    assert.equal(excluded[0].reason, "Could not determine the pack count.");
+  });
+
+  await t.test("the exclusion reason names the missing factor", () => {
+    const { excluded } = partitionClassifiedItems([
+      line({ quantity: null }),
+      line({ quantity: null, packCount: null }),
+      line({ quantity: 2.5, packCount: 3 }),
+    ]);
+    assert.deepEqual(
+      excluded.map((item) => item.reason),
+      [
+        "Could not read the quantity.",
+        "Could not determine pack size or quantity.",
+        "Could not determine pack size or quantity.",
+      ],
+    );
   });
 
   await t.test("fractional, zero and negative quantities are excluded", () => {

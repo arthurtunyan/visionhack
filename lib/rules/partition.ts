@@ -73,7 +73,7 @@ export function partitionClassifiedItems(classified: ClassifiedItem[]): Partitio
     if (!accessory && rawUnits === null) {
       excluded.push({
         description: item.sourceLineText,
-        reason: "Could not determine pack size or quantity.",
+        reason: unknownUnitsReason(item.quantity, item.packCount),
         confidence,
         category,
       });
@@ -97,6 +97,13 @@ export function partitionClassifiedItems(classified: ClassifiedItem[]): Partitio
   }
 
   return { items, excluded, varietyCounts: countQualifyingVarieties(items) };
+}
+
+/** Name the missing factor, so a zero-unit scan can be diagnosed from its response. */
+function unknownUnitsReason(quantity: number | null, packCount: number | null): string {
+  if (quantity !== null && packCount === null) return "Could not determine the pack count.";
+  if (quantity === null && packCount !== null) return "Could not read the quantity.";
+  return "Could not determine pack size or quantity.";
 }
 
 /**
