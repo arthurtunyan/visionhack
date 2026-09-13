@@ -15,7 +15,7 @@ export function CtaBand({
     <Section ground="coal">
       <div className={styles.ctaInner}>
         <Reveal>
-          <Logo inverse height={30} />
+          <Logo inverse height={48} />
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className={`display ${styles.ctaTitle}`} style={{ color: "var(--paper)" }}>

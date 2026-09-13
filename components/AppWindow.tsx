@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Logo } from "./Logo";
 import styles from "./AppWindow.module.css";
 
 interface AppWindowProps {
@@ -16,7 +17,10 @@ export function AppWindow({ url = "app.ledger.co", children, className }: AppWin
           <i />
           <i />
         </span>
-        <span className={styles.url}>{url}</span>
+        <span className={styles.url}>
+          <Logo variant="mark" height={14} />
+          {url}
+        </span>
         <span className={styles.spacer} aria-hidden="true" />
       </div>
       <div className={styles.body}>{children}</div>

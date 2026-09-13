@@ -8,7 +8,7 @@ export function Footer() {
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.brandCol}>
-          <Logo height={28} />
+          <Logo height={40} />
           <p className={styles.tagline}>
             Permit and stocking compliance for independent retailers.
           </p>
