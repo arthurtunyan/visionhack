@@ -25,7 +25,7 @@ export async function generateMetadata({
   const industry = getIndustry(slug);
   if (!industry) return { title: "Industry not found" };
   return {
-    title: `${industry.name} — permit & stocking tracking`,
+    title: `${industry.name}: permit & stocking tracking`,
     description: industry.intro,
   };
 }
@@ -50,7 +50,7 @@ export default async function IndustryPage({
         >
           <div className={styles.badges}>
             {industry.badges.map((b) => (
-              <Badge key={b} abbr={b} size={52} />
+              <Badge key={b} abbr={b} size={52} showAbbr />
             ))}
           </div>
         </PageHeader>

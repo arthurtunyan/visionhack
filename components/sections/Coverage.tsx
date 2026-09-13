@@ -22,7 +22,7 @@ export function Coverage({ ground = "coal", intro }: CoverageProps) {
       <Reveal delay={0.05}>
         <p className={`body-l ${styles.covIntro}`} style={{ color: dark ? "var(--mute-dark)" : "var(--mute)" }}>
           {intro ??
-            "Each has its own renewal date, its own filing and its own inspector. Ledger holds all of them against one calendar."}
+            "Every one of them renews on its own schedule and answers to its own inspector. Ledger keeps them on one calendar."}
         </p>
       </Reveal>
 

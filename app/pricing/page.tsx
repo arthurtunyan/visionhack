@@ -7,7 +7,7 @@ import { Faq } from "@/components/sections/Faq";
 import { CtaBand } from "@/components/sections/CtaBand";
 
 export const metadata: Metadata = {
-  title: "Pricing — first store free",
+  title: "Pricing: first store free",
   description:
     "Straightforward pricing for single stores, groups and chains. The first store is always free.",
 };

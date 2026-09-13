@@ -6,7 +6,7 @@ import { Faq } from "@/components/sections/Faq";
 import { CtaBand } from "@/components/sections/CtaBand";
 
 export const metadata: Metadata = {
-  title: "FAQ — the questions we get asked",
+  title: "FAQ: the questions we get asked",
   description:
     "Straight answers on affiliation, blurry photos, case counts, POS integration and who Ledger is for.",
 };
@@ -19,7 +19,7 @@ export default function FaqPage() {
         <PageHeader
           eyebrow="FAQ"
           title="Straight answers."
-          intro="If yours isn't here, the demo answers most of it faster than we can."
+          intro="If yours isn't here, the demo will probably answer it faster than we can."
         />
         <Faq heading="Everything, in order." />
         <CtaBand />

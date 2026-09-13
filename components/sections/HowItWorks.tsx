@@ -64,13 +64,13 @@ const STEPS = [
   {
     n: "02",
     title: "See where you stand",
-    body: "Every requirement against its threshold, re-checked after each scan. No digging through renewal letters.",
+    body: "Every requirement against its threshold, re-checked after each scan. No digging through a drawer of renewal letters.",
     visual: <ScoreVisual />,
   },
   {
     n: "03",
     title: "Fix what blocks you",
-    body: "Ranked by what closes you down first, not by date. The top item is always the one that matters today.",
+    body: "The item at the top is whatever can shut you down soonest, so you can stop reading after the first line if you want.",
     visual: <FixVisual />,
   },
 ];
@@ -80,7 +80,7 @@ export function HowItWorks() {
     <Section ground="tint">
       <div className={styles.sectionHead}>
         <Reveal>
-          <h2 className="display">Set it up once. It runs itself.</h2>
+          <h2 className="display">Ten minutes to set up.</h2>
         </Reveal>
       </div>
 

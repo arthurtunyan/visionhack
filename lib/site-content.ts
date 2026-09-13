@@ -47,19 +47,19 @@ export const INDUSTRIES: Industry[] = [
     badges: ["SNAP", "WIC", "EBT", "CHP", "TRL", "W&M"],
     headline: "The stocking rule is the one that closes you.",
     intro:
-      "A corner store answers to more programmes than a supermarket, with less staff to watch them. The stocking minimums behind SNAP and WIC are the ones that quietly fail between renewals — and the invoice scan is built for exactly that.",
+      "A corner store answers to more programmes than a supermarket, with fewer staff to watch them. The stocking minimums behind SNAP and WIC are the ones that quietly fail between renewals, which is what the invoice scan is for.",
     risks: [
       {
         title: "Stocking minimums drift",
-        body: "SNAP wants staple variety and depth in every category. One slow week of produce and you are under without a letter warning you.",
+        body: "SNAP wants staple variety and depth in every category. One slow week of produce and you are under, with no letter to warn you.",
       },
       {
         title: "WIC vendor terms are stricter",
-        body: "WIC checks specific items at specific prices. Ledger tracks the shelf against the vendor agreement, not a generic list.",
+        body: "WIC checks specific items at specific prices. Ledger tracks the shelf against your vendor agreement rather than a generic list.",
       },
       {
         title: "Permits stack up",
-        body: "Health permit, tobacco licence, scales certification — different dates, different inspectors, one calendar.",
+        body: "Health permit, tobacco licence and scales certification all renew on their own dates. They go on one calendar.",
       },
     ],
   },
@@ -71,11 +71,11 @@ export const INDUSTRIES: Industry[] = [
     badges: ["EPA", "OSHA", "DOT", "BAR", "BTC", "FIRE"],
     headline: "The waste manifest is the paperwork that bites.",
     intro:
-      "Parts and service stores carry an environmental and safety load most retailers never touch. Used oil, refrigerant and hazardous waste each have their own filing, and a lapsed registration is the kind of thing you only find out about during an inspection.",
+      "Parts and service stores carry an environmental and safety load most retailers never touch. Used oil, refrigerant and hazardous waste each have their own filing, and a lapsed registration is the kind of thing you tend to find out about during an inspection.",
     risks: [
       {
         title: "Used oil and hazardous waste",
-        body: "EPA and state rules govern storage, hauling and manifests. Ledger tracks the filing dates so a missed manifest doesn't surface as a fine.",
+        body: "EPA and state rules govern storage, hauling and manifests. Ledger tracks the filing dates so a missed manifest doesn't turn into a fine.",
       },
       {
         title: "Refrigerant handling",
@@ -95,7 +95,7 @@ export const INDUSTRIES: Industry[] = [
     badges: ["ABC", "TTB", "TRL", "BTC", "FIRE"],
     headline: "The licence conditions are longer than the licence.",
     intro:
-      "A liquor or tobacco licence comes with conditions that keep applying long after it's granted — posting, hours, age verification, federal permits. Ledger holds the conditions, not just the expiry date.",
+      "A liquor or tobacco licence comes with conditions that keep applying long after it's granted: posting, hours, age verification, federal permits. Ledger holds those conditions as well as the expiry date.",
     risks: [
       {
         title: "Licence conditions",
@@ -116,9 +116,9 @@ export const INDUSTRIES: Industry[] = [
     name: "Pharmacy & health",
     description: "Board of pharmacy, controlled substances, cold chain",
     badges: ["BOP", "FDA", "CHP", "OSHA"],
-    headline: "The cold chain doesn't forgive a missed log.",
+    headline: "A missed temperature log is a finding.",
     intro:
-      "Pharmacies carry the tightest record-keeping of any small retailer — board registration, controlled-substance logs and temperature records that have to be complete, not mostly complete. Ledger tracks the filings around them so the pharmacist can focus on the counter.",
+      "Pharmacies carry the tightest record-keeping of any small retailer: board registration, controlled-substance logs and temperature records that have to be complete rather than mostly complete. Ledger tracks the filings around them so the pharmacist can stay at the counter.",
     risks: [
       {
         title: "Board of pharmacy",
@@ -141,7 +141,7 @@ export const INDUSTRIES: Industry[] = [
     badges: ["EPA", "OSHA", "FIRE", "W&M", "BTC"],
     headline: "The fire load is a permit, not a suggestion.",
     intro:
-      "Hardware and garden stores stock things most retailers don't — pesticides, fuels, fertilisers — and each carries a storage and sales rule. Ledger tracks the permits behind the aisles you'd rather not think about.",
+      "Hardware and garden stores stock things most retailers don't, like pesticides, fuels and fertilisers, and each one carries a storage and sales rule. Ledger tracks the permits behind those aisles.",
     risks: [
       {
         title: "Pesticide sales",
@@ -212,7 +212,7 @@ export interface FaqItem {
 export const FAQ: FaqItem[] = [
   {
     q: "I don't sell food. Is this for me?",
-    a: "Yes. Auto parts, liquor, pharmacy and hardware stores all carry permit stacks with different renewal dates and different inspectors. The invoice scan is the food-specific part; the permit tracking is not.",
+    a: "Yes. Auto parts, liquor, pharmacy and hardware stores all carry permit stacks with different renewal dates and different inspectors. Only the invoice scan is specific to food. The permit tracking is not.",
   },
   {
     q: "Are you affiliated with SNAP or the EPA?",
@@ -220,11 +220,11 @@ export const FAQ: FaqItem[] = [
   },
   {
     q: "What if the photo is blurry?",
-    a: "Ledger transcribes only what it can actually read. Anything ambiguous is listed as held back with a reason, and never counted. A blurry photo gives you a shorter count, not a wrong one.",
+    a: "Ledger transcribes only what it can actually read. Anything it cannot make out gets listed as held back with a reason, and never counted. A blurry photo gives you a shorter count rather than a wrong one.",
   },
   {
     q: "Does a case count as one unit?",
-    a: "No. A case becomes the number of sellable units inside it. A 24-pack is 24. If an item is priced by weight there is no unit count to read, so it is held back for you to confirm.",
+    a: "No. A case becomes the number of sellable units inside it, so a 24-pack is 24. If an item is priced by weight there is no unit count to read, so it gets held back for you to confirm.",
   },
   {
     q: "Do I need to integrate my POS?",

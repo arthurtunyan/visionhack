@@ -11,9 +11,9 @@ const COLUMNS = [
 ];
 
 const ROWS = [
-  { line: "ROMA TOMATOES", pack: "25 LB CS", why: "Priced by weight — no unit count" },
-  { line: "YELLOW ONIONS JUMBO", pack: "50 LB SACK", why: "Priced by weight — no unit count" },
-  { line: "SWEET CREAM BUTTER", pack: "36 x 4 OZ", why: "Accessory food — counts for nothing" },
+  { line: "ROMA TOMATOES", pack: "25 LB CS", why: "Priced by weight, no unit count" },
+  { line: "YELLOW ONIONS JUMBO", pack: "50 LB SACK", why: "Priced by weight, no unit count" },
+  { line: "SWEET CREAM BUTTER", pack: "36 x 4 OZ", why: "Accessory food, counts for nothing" },
   { line: "PAPER TOWELS 2PLY", pack: "30 ROLL", why: "Not a staple category" },
 ];
 
@@ -29,7 +29,7 @@ export function Undercount() {
             <p className="body">
               Telling a store it passes when it doesn&apos;t is the expensive
               mistake. A case priced by weight has no unit count to read, so Ledger
-              lists it with the reason instead of inventing a number.
+              lists it with the reason rather than guess at a number.
             </p>
           </Reveal>
           <Reveal delay={0.1}>
@@ -38,7 +38,9 @@ export function Undercount() {
               <CountUp to={4} />
             </div>
             <p className={styles.ucCaption}>lines held back on this invoice</p>
-            <p className={styles.ucSub}>Four held back beats one wrong total.</p>
+            <p className={styles.ucSub}>
+              You can check those four yourself in about a minute.
+            </p>
           </Reveal>
         </div>
 
