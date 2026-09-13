@@ -57,7 +57,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      # enablement turns Pages on through the API on first run. Without it the
+      # deploy fails with "Get Pages site failed ... Not Found" until somebody
+      # flips Settings -> Pages by hand, which is a manual step nobody would
+      # know to take from the error alone.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
