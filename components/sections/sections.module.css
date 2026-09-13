@@ -277,6 +277,38 @@
   align-items: flex-start;
   gap: 14px;
   padding: 16px 0;
+  /* Each row opens the dashboard, so it has to read and behave as a link. */
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.18s ease;
+}
+.covRow:hover {
+  opacity: 0.72;
+  text-decoration: none;
+}
+.covRow:hover .covGo {
+  transform: translateX(3px);
+}
+.covRow:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+.covRowText {
+  flex: 1 1 auto;
+}
+/* Chevron, nudged on hover so the row reads as going somewhere. */
+.covGo {
+  flex: none;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--mute);
+  border-bottom: 1.5px solid var(--mute);
+  transform: rotate(-45deg);
+  transition: transform 0.18s ease;
+}
+.covRow[data-dark="true"] .covGo {
+  border-color: var(--mute-dark);
 }
 .covRowText {
   display: flex;

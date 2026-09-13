@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Section } from "@/components/Section";
 import { Badge } from "@/components/Badge";
 import { Reveal } from "@/components/Reveal";
@@ -38,9 +39,12 @@ export function Coverage({ ground = "coal", intro }: CoverageProps) {
               </div>
               <div>
                 {col.programs.map((p) => (
-                  <div
+                  <Link
                     key={p.abbr + p.label}
+                    href="/dashboard"
+                    aria-label={`${p.abbr}: ${p.label}. Open the dashboard.`}
                     className={styles.covRow}
+                    data-dark={dark}
                     style={{
                       borderBottom: `1px solid ${dark ? "var(--line-dark)" : "var(--line)"}`,
                     }}
@@ -55,7 +59,8 @@ export function Coverage({ ground = "coal", intro }: CoverageProps) {
                         {p.label}
                       </span>
                     </span>
-                  </div>
+                    <span className={styles.covGo} aria-hidden="true" />
+                  </Link>
                 ))}
               </div>
             </div>
