@@ -143,6 +143,31 @@ function parseExplicitPackCount(raw: string | null): number | null {
   return Number.isSafeInteger(value) ? value : null;
 }
 
+/** Longest pack expression the strict parser accepts, e.g. "24 x 12 fl oz". */
+const MAX_PACK_EXPRESSION_TOKENS = 5;
+
+/**
+ * Every explicit pack expression inside free text. Each candidate run of
+ * words is judged by parseExplicitPackCount itself, so this search can never
+ * accept a format the strict parser would reject.
+ */
+function explicitPackCountsIn(text: string): number[] {
+  const tokens = text.trim().split(/\s+/);
+  const counts: number[] = [];
+  for (let start = 0; start < tokens.length; start++) {
+    const last = Math.min(tokens.length, start + MAX_PACK_EXPRESSION_TOKENS);
+    for (let end = start + 1; end <= last; end++) {
+      const count = parseExplicitPackCount(tokens.slice(start, end).join(" "));
+      if (count !== null) {
+        counts.push(count);
+        start = end - 1;
+        break;
+      }
+    }
+  }
+  return counts;
+}
+
 /**
  * Full descriptions recognized as whole produce after known invoice metadata
  * is removed. Unknown words intentionally fail closed instead of relying on a
@@ -198,6 +223,33 @@ function reconcileStorage(item: Classification["items"][number], sourceLineText:
 }
 
 /**
+ * Produce invoices often print the case count inside the description
+ * ("Lettuce, Head 24 ct Cello Wrap") with no pack column, so pass 1 can leave
+ * packSize empty or copy extra words into it. For whole fresh produce only,
+ * accept a count when exactly one explicit expression appears. Packaged goods
+ * are left alone on purpose: there "10 ct" in a name usually describes one
+ * retail pack, and reading it as a case count would overcount.
+ */
+function packCountFromProduceText(
+  item: Classification["items"][number],
+  source: RawExtraction["lines"][number],
+): number | null {
+  if (item.category !== "produce" || !isUnambiguouslyFreshWholeProduce(source.lineText)) {
+    return null;
+  }
+  // A leading number is the item-code column, never a pack.
+  const texts = [source.packSize, source.lineText.replace(/^\s*\d+\s+/, "")];
+  const found: number[] = [];
+  for (const text of texts) {
+    if (text === null) continue;
+    const counts = explicitPackCountsIn(text);
+    if (counts.length > 1) return null;
+    found.push(...counts);
+  }
+  return found.length > 0 && found.every((count) => count === found[0]) ? found[0] : null;
+}
+
+/**
  * Bind pass 2 back to pass 1 and replace model-guessed factors with values
  * parsed from the transcription. This is the hard safety boundary before the
  * deterministic partition/rule engine sees model output.
@@ -228,7 +280,8 @@ function reconcileClassification(
       return {
         ...item,
         quantity: parsePrintedQuantity(source.quantity),
-        packCount: parseExplicitPackCount(source.packSize),
+        packCount:
+          parseExplicitPackCount(source.packSize) ?? packCountFromProduceText(item, source),
         storage: reconcileStorage(item, source.lineText),
         excludeReason: source.legible
           ? item.excludeReason

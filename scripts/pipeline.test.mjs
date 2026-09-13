@@ -352,6 +352,115 @@ test("classification reconciles the supplied produce invoice to explicit counts 
   );
 });
 
+/** Classify `raw` with a model that guesses 16 per pack and 99 packs on every line. */
+async function classifyWithUnsafeGuesses(raw, category = "produce") {
+  const items = raw.lines.map((line) => ({
+    sourceLineText: line.lineText,
+    category,
+    variety: line.lineText.toLowerCase().replace(/^\d+\s+/, ""),
+    packCount: 16,
+    quantity: 99,
+    storage: "fresh",
+    accessory: false,
+    confidence: 0.9,
+    excludeReason: null,
+  }));
+  const { result } = await withFetch(
+    () => jsonResponse(toolCompletion(CLASSIFY_TOOL, JSON.stringify({ items }))),
+    () => classifyLines(raw),
+  );
+  return result;
+}
+
+test("classification reads produce case counts printed inside the description", async () => {
+  // A live scan of the supplied invoice (2026-09-12) counted none of its 12
+  // lines: the pack sizes are printed in the description, not a pack column.
+  const raw = {
+    lines: [
+      ["35150 Yam Louisiana / Mississippi 40 #", "3"],
+      ["25010 Cooking Onion 16 / 3 #", "4"],
+      ["60082 Tomato 4x4", "5"],
+      ["60070 Roma Tomato", "1"],
+      ["60050 Hydro Tomato", "4"],
+      ["60020 Tomato, Cluster (Vine)", "10"],
+      ["60030 Tomato, Grape pint", "10"],
+      ["30040 Green Pepper EX-Large", "8"],
+      ["13010 Select Cucumber bushel", "2"],
+      ["7010 Green Cabbage Box", "2"],
+      ["20060 Lettuce, Head 24 ct Cello Wrap", "8"],
+      ["10010 Celery 24 ct No Sleeve", "6"],
+    ].map(([lineText, quantity]) => ({ lineText, packSize: null, quantity, legible: true })),
+  };
+
+  const classified = await classifyWithUnsafeGuesses(raw);
+  const partitioned = partitionClassifiedItems(classified.items);
+
+  assert.deepEqual(
+    partitioned.items.map((item) => [item.description, item.quantity, item.packCount, item.stockingUnits]),
+    [
+      ["25010 Cooking Onion 16 / 3 #", 4, 16, 64],
+      ["20060 Lettuce, Head 24 ct Cello Wrap", 8, 24, 192],
+      ["10010 Celery 24 ct No Sleeve", 6, 24, 144],
+    ],
+  );
+  assert.equal(partitioned.excluded.length, 9);
+  assert.ok(
+    partitioned.excluded.every((line) => line.reason === "Could not determine the pack count."),
+  );
+  assert.deepEqual(partitioned.varietyCounts, { dairy: 0, grains: 0, protein: 0, produce: 3 });
+  assert.equal(partitioned.items.reduce((sum, item) => sum + item.stockingUnits, 0), 400);
+});
+
+test("produce pack counts are read when pass 1 copies extra words into packSize", async () => {
+  const raw = {
+    lines: [
+      { lineText: "20060 Lettuce, Head 24 ct Cello Wrap", packSize: "24 ct Cello Wrap", quantity: "8", legible: true },
+      { lineText: "10010 Celery 24 ct No Sleeve", packSize: "Celery 24 ct No Sleeve", quantity: "6", legible: true },
+    ],
+  };
+
+  const classified = await classifyWithUnsafeGuesses(raw);
+
+  assert.deepEqual(classified.items.map((item) => item.packCount), [24, 24]);
+});
+
+test("description pack counts stay unknown outside unambiguous whole produce", async () => {
+  const produce = {
+    lines: [
+      // Two different counts: no way to tell which is the case pack.
+      { lineText: "LETTUCE 12 CT 24 CT", packSize: null, quantity: "2", legible: true },
+      { lineText: "20060 Lettuce, Head 24 ct Cello Wrap", packSize: "12 ct wrap", quantity: "8", legible: true },
+      // Prepared or preserved produce is not on the whole-produce allowlist.
+      { lineText: "FROZEN BROCCOLI 12 CT", packSize: null, quantity: "4", legible: true },
+      // A leading item code is not a pack, and a weight or grade is not a count.
+      { lineText: "24 Roma Tomato", packSize: null, quantity: "3", legible: true },
+      { lineText: "Yam 40 #", packSize: null, quantity: "3", legible: true },
+      { lineText: "Tomato 4x4", packSize: null, quantity: "5", legible: true },
+    ],
+  };
+  // Packaged goods: "10 ct" in the name is one retail pack, not the case.
+  const packaged = {
+    lines: [
+      { lineText: "MISSION FLOUR TORTILLAS 10 CT", packSize: null, quantity: "12", legible: true },
+    ],
+  };
+  // The model must also call it produce.
+  const miscategorized = {
+    lines: [
+      { lineText: "10010 Celery 24 ct No Sleeve", packSize: null, quantity: "6", legible: true },
+    ],
+  };
+
+  for (const [raw, category] of [[produce, "produce"], [packaged, "grains"], [miscategorized, "grains"]]) {
+    const classified = await classifyWithUnsafeGuesses(raw, category);
+    assert.deepEqual(
+      classified.items.map((item) => item.packCount),
+      raw.lines.map(() => null),
+      raw.lines.map((line) => line.lineText).join(" | "),
+    );
+  }
+});
+
 test("classification accepts common explicit multipack formats", async () => {
   const raw = {
     lines: [
