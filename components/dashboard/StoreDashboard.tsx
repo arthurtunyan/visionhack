@@ -2,14 +2,16 @@
 
 /**
  * The unified screen: one readiness figure over every obligation, with the
- * invoice scan feeding straight into it.
+ * order-record scan feeding straight into it.
  *
  * The scan is not a separate toy here. A scorecard that comes back short moves
  * SNAP to "action needed" and the ring drops, which is the whole point of
  * putting stocking and paperwork on one page.
  */
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/Button";
+import { Reveal } from "@/components/Reveal";
 import { CategoryBar } from "@/components/CategoryBar";
 import { DataTable } from "@/components/DataTable";
 import { Pill } from "@/components/Pill";
@@ -44,7 +46,11 @@ const TONE: Record<Status, "ok" | "warn" | "bad" | "neutral"> = {
   na: "neutral",
 };
 
+/** Framer's standard ease, shared with the rest of the site's motion. */
+const EASE = [0.22, 0.68, 0.28, 1] as const;
+
 export function StoreDashboard() {
+  const reduce = useReducedMotion();
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
@@ -102,7 +108,7 @@ export function StoreDashboard() {
   return (
     <div className={styles.wrap}>
       <div className={styles.topGrid}>
-        <div className={styles.ringCard}>
+        <Reveal className={styles.ringCard} y={16}>
           <StatRing
             percent={Math.round(score.ratio * 100)}
             size={148}
@@ -119,9 +125,9 @@ export function StoreDashboard() {
                 : "Nothing is overdue."}
             </p>
           </div>
-        </div>
+        </Reveal>
 
-        <div className={styles.stockCard}>
+        <Reveal className={styles.stockCard} y={16} delay={0.06}>
           <div className={styles.stockHead}>
             <div>
               <span className="eyebrow mute">Staple stocking</span>
@@ -132,12 +138,20 @@ export function StoreDashboard() {
                 {evidence.result.overallStatus === "pass" ? "Meets the standard" : "Short"}
               </Pill>
             ) : (
-              <Pill tone="neutral">No invoice yet</Pill>
+              <Pill tone="neutral">No order record yet</Pill>
             )}
           </div>
 
           {evidence ? (
-            <>
+            <motion.div
+              // Keyed on the scan, so a fresh result animates in rather than
+              // mutating the numbers under the reader.
+              key={store.lastScan?.at ?? "none"}
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={reduce ? undefined : { opacity: 1, y: 0 }}
+              transition={{ duration: 0.34, ease: EASE }}
+              className={styles.stockBody}
+            >
               <div className={styles.bars}>
                 {evidence.result.categories.map((c, i) => (
                   <CategoryBar
@@ -157,35 +171,45 @@ export function StoreDashboard() {
               </p>
               {!evidence.fresh ? (
                 <p className={styles.stale}>
-                  This invoice is older than the {SNAP_RULE.recentOrderWindowDays} day window,
+                  This order record is older than the {SNAP_RULE.recentOrderWindowDays} day window,
                   so it no longer counts as evidence of what is on the shelf. Scan a recent
                   delivery.
                 </p>
               ) : null}
-            </>
+            </motion.div>
           ) : (
             <p className="small mute">
-              Photograph a delivery invoice and the result lands here. Orders from the last{" "}
+              Photograph a wholesale order record and the result lands here. Orders from the last{" "}
               {SNAP_RULE.recentOrderWindowDays} days count toward stock, which is what makes an
-              invoice evidence.
+              order record evidence.
             </p>
           )}
 
           <div className={styles.stockActions}>
             <Button variant={evidence ? "secondary" : "primary"} onClick={() => setScanning((v) => !v)}>
-              {scanning ? "Close scanner" : evidence ? "Scan another invoice" : "Scan an invoice"}
+              {scanning ? "Close scanner" : evidence ? "Scan another order record" : "Scan an order record"}
             </Button>
           </div>
-        </div>
+        </Reveal>
       </div>
 
-      {scanning ? (
-        <div className={styles.scanner}>
-          <DemoScanner onResult={onScan} />
-        </div>
-      ) : null}
+      <AnimatePresence initial={false}>
+        {scanning ? (
+          <motion.div
+            key="scanner"
+            className={styles.scanner}
+            initial={reduce ? false : { opacity: 0, height: 0 }}
+            animate={reduce ? undefined : { opacity: 1, height: "auto" }}
+            exit={reduce ? undefined : { opacity: 0, height: 0 }}
+            transition={{ duration: 0.34, ease: EASE }}
+            style={{ overflow: "hidden" }}
+          >
+            <DemoScanner onResult={onScan} />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
-      <section className={styles.listSection}>
+      <Reveal as="div" className={styles.listSection} y={16} delay={0.12}>
         <h2 className="heading">Everything this store answers to</h2>
         <p className="small mute">Worst first. The scan moves SNAP on its own.</p>
         <DataTable
@@ -219,7 +243,7 @@ export function StoreDashboard() {
             };
           })}
         />
-      </section>
+      </Reveal>
     </div>
   );
 }

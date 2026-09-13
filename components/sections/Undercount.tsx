@@ -37,7 +37,7 @@ export function Undercount() {
             <div className={`${styles.ucBigNum} tnum`}>
               <CountUp to={4} />
             </div>
-            <p className={styles.ucCaption}>lines held back on this invoice</p>
+            <p className={styles.ucCaption}>lines held back on this order record</p>
             <p className={styles.ucSub}>Four held back beats one wrong total.</p>
           </Reveal>
         </div>

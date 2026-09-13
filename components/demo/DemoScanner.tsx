@@ -48,7 +48,7 @@ export function DemoScanner({ onResult }: DemoScannerProps = {}) {
       try {
         const prepared = await downscaleImage(file);
         const body = new FormData();
-        body.append("image", prepared, "invoice.jpg");
+        body.append("image", prepared, "order-record.jpg");
         if (storeName.trim()) body.append("storeName", storeName.trim());
 
         const res = await fetch("/api/scan", { method: "POST", body });

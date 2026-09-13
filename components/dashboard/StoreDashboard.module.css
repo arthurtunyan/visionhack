@@ -112,3 +112,10 @@
     text-align: center;
   }
 }
+
+/* Wrapper the scorecard animates in as one unit when a new scan lands. */
+.stockBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}

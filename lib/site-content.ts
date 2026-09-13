@@ -47,7 +47,7 @@ export const INDUSTRIES: Industry[] = [
     badges: ["SNAP", "WIC", "EBT", "CHP", "TRL", "W&M"],
     headline: "The stocking rule is the one that closes you.",
     intro:
-      "A corner store answers to more programmes than a supermarket, with less staff to watch them. The stocking minimums behind SNAP and WIC are the ones that quietly fail between renewals — and the invoice scan is built for exactly that.",
+      "A corner store answers to more programmes than a supermarket, with less staff to watch them. The stocking minimums behind SNAP and WIC are the ones that quietly fail between renewals — and the order-record scan is built for exactly that.",
     risks: [
       {
         title: "Stocking minimums drift",
@@ -212,7 +212,7 @@ export interface FaqItem {
 export const FAQ: FaqItem[] = [
   {
     q: "I don't sell food. Is this for me?",
-    a: "Yes. Auto parts, liquor, pharmacy and hardware stores all carry permit stacks with different renewal dates and different inspectors. The invoice scan is the food-specific part; the permit tracking is not.",
+    a: "Yes. Auto parts, liquor, pharmacy and hardware stores all carry permit stacks with different renewal dates and different inspectors. The order-record scan is the food-specific part; the permit tracking is not.",
   },
   {
     q: "Are you affiliated with SNAP or the EPA?",
@@ -228,7 +228,7 @@ export const FAQ: FaqItem[] = [
   },
   {
     q: "Do I need to integrate my POS?",
-    a: "No. Ledger works from a photograph of the paper invoice and the permit details you enter once. Nothing to install at the register.",
+    a: "No. Ledger works from a photograph of the paper wholesale order record and the permit details you enter once. Nothing to install at the register.",
   },
 ];
 
@@ -249,7 +249,7 @@ export const PRICING: PricingPlan[] = [
     priceSuffix: "/month",
     for: "One location, one owner.",
     features: [
-      "Unlimited invoice scans",
+      "Unlimited order-record scans",
       "All 18 programmes tracked",
       "Renewal reminders",
       "7 years of scan history",

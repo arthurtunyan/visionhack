@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Dashboard — every deadline and the shelves",
   description:
     "One readiness figure across every licence, permit and deadline a store answers to, " +
-    "with the invoice scan feeding the SNAP stocking standard directly into it.",
+    "with the wholesale order-record scan feeding the SNAP stocking standard directly into it.",
 };
 
 export default function DashboardPage() {
@@ -21,7 +21,7 @@ export default function DashboardPage() {
         <PageHeader
           eyebrow="Dashboard"
           title="Every deadline, and the shelves, in one number."
-          intro="Paperwork and stocking are the two ways a store loses SNAP. Scan a delivery invoice and the result moves the same score your permits do."
+          intro="Paperwork and stocking are the two ways a store loses SNAP. Scan a wholesale order record and the result moves the same score your permits do."
         />
         <Section ground="tint">
           <StoreDashboard />
