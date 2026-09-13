@@ -10,7 +10,12 @@ on:
     paths:
       - "site/**"
       - "brand/tools/build-static-site.py"
+      - "scripts/check-static-site.py"
       - ".github/workflows/pages.yml"
+  # Verification runs on EVERY pull request, not only ones touching site/. The
+  # fallback asserts its thresholds against lib/rule-engine.ts, so a PR that
+  # changes a threshold and nothing else is exactly the one that must fail here.
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -20,7 +25,7 @@ permissions:
 
 # Never cancel a deploy that is already publishing; queue behind it instead.
 concurrency:
-  group: pages
+  group: pages-${{ github.event_name == 'pull_request' && github.ref || 'main' }}
   cancel-in-progress: false
 
 jobs:
@@ -38,11 +43,13 @@ jobs:
         run: |
           python3 brand/tools/build-static-site.py
           git diff --exit-code -- site/
-      - name: Every local asset a page references exists
+      - name: Assets resolve, nothing needs JS, thresholds match the rule engine
         run: python3 scripts/check-static-site.py
 
   deploy:
     needs: verify
+    # A pull request verifies but never publishes.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
