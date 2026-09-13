@@ -113,8 +113,8 @@
 }
 .heroWindow {
   width: min(1240px, 100%);
-  margin: 0 auto -1px;
-  /* The crop at the section's bottom edge is intentional. */
+  margin: 0 auto;
+  padding-bottom: 8px;
 }
 
 /* ---------- Program strip ---------- */

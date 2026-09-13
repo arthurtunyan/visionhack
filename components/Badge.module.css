@@ -18,13 +18,14 @@
 
 .tile[data-tone="light"] {
   background: var(--tint);
-  color: var(--blue);
+  color: var(--ink);
   border: 1px solid var(--line);
 }
 
 .tile[data-tone="dark"] {
-  background: var(--line-dark);
-  color: var(--blue-lift);
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid transparent;
 }
 
 .abbr {

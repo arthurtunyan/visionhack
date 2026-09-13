@@ -1,0 +1,234 @@
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 640px;
+  background: var(--paper);
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  border-right: 1px solid var(--line);
+  padding: 22px 18px;
+  background: var(--tint);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav span {
+  font-size: 14px;
+  color: var(--mute);
+  padding: 9px 12px;
+  border-radius: 10px;
+}
+.nav span[data-active="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(16, 22, 48, 0.06);
+}
+.sideCard {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.sideLabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.sideValue {
+  font-size: 14px;
+  font-weight: 600;
+}
+.sideMeta {
+  font-size: 12.5px;
+  color: var(--bad, #d13a2c);
+}
+
+/* ---------- Main ---------- */
+.main {
+  padding: 28px 30px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+.topRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.h2 {
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+.sub {
+  font-size: 13.5px;
+  color: var(--mute);
+  margin-top: 5px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cardLabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.cardValue {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.cardValue[data-alert="true"] {
+  color: #d13a2c;
+}
+.cardMeta {
+  font-size: 12.5px;
+  color: var(--mute);
+}
+.split {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+}
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+}
+.panelTitle {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  margin-bottom: 18px;
+}
+.scoreRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.bars {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.panelNote {
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--mute);
+}
+.todo {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+}
+.todo li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 14px;
+}
+
+/* ---------- Permit table ---------- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.table th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.table td {
+  padding: 12px 14px 12px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+.permitCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.permitName {
+  display: block;
+  font-weight: 500;
+  color: var(--ink);
+}
+.permitAbbr {
+  display: block;
+  font-size: 11.5px;
+  color: var(--mute);
+  letter-spacing: 0.04em;
+}
+.mono {
+  font-variant-numeric: tabular-nums;
+  color: var(--mute);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    display: none;
+  }
+  .cards,
+  .split {
+    grid-template-columns: 1fr;
+  }
+  .main {
+    padding: 22px 18px 26px;
+  }
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
