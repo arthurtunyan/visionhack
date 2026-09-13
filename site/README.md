@@ -88,8 +88,13 @@ unit count.
 ## Deploying
 
 `.github/workflows/pages.yml` publishes this directory on every push to `main`
-that touches it. Enable it once under **Settings → Pages → Source: GitHub
-Actions**; the site then serves at `https://<owner>.github.io/visionhack/`.
+that touches it, and verifies (without publishing) on every pull request. The
+first deploy turns Pages on itself via `configure-pages`' `enablement` input, so
+there is normally nothing to click. If your org blocks that, the job fails with
+*"Get Pages site failed ... Not Found"* and somebody has to set **Settings →
+Pages → Source: GitHub Actions** by hand.
+
+The site then serves at `https://<owner>.github.io/visionhack/`.
 
 `.nojekyll` is present so Jekyll does not drop `_`-prefixed paths.
 
