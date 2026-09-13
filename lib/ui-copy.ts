@@ -3,6 +3,7 @@
  * its scorecard in. Scorecard content itself (labels, fixes) comes from the
  * API's `scorecard` / `scorecardEs`; this file only covers the surrounding UI.
  */
+import type { ScanResult } from "./mock-data";
 import type { Locale } from "./scorecard-copy";
 import {
   REQUIRED_UNITS_PER_CATEGORY,
@@ -115,3 +116,86 @@ export const UI_COPY: Record<Locale, UiCopy> = {
  */
 export const REQUIRED_VARIETIES = REQUIRED_VARIETIES_PER_CATEGORY;
 export const REQUIRED_UNITS = REQUIRED_UNITS_PER_CATEGORY;
+
+/**
+ * `scanDate` is a calendar date ("2026-09-12"). `new Date()` reads that as
+ * midnight UTC, which is still the previous day west of UTC, so a Los Angeles
+ * browser showed yesterday. Formatting in UTC shows the date the API sent.
+ */
+export function formatScanDate(scanDate: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale === "es" ? "es" : "en", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(scanDate));
+}
+
+/** Categories still under the variety or unit minimum. */
+export function shortCategories(result: ScanResult): ScanResult["categories"] {
+  return result.categories.filter(
+    (c) => c.varietiesFound < REQUIRED_VARIETIES || c.unitsFound < REQUIRED_UNITS,
+  );
+}
+
+/** One sentence a store owner can act on without reading the rest. */
+export function scorecardReading(result: ScanResult, locale: Locale): string {
+  const es = locale === "es";
+  if (result.overallStatus === "pass") {
+    return es
+      ? "Las cuatro categorías cumplen el mínimo. No hay nada que corregir esta semana."
+      : "All four categories clear the minimum. Nothing to fix this week.";
+  }
+
+  const short = shortCategories(result);
+  if (short.length === 0) {
+    // Every category clears, so the perishable rule is what failed.
+    const met = result.perishableCategoriesMet;
+    return es
+      ? `Las cuatro categorías cumplen, pero solo ${met} de 4 tienen un perecedero.`
+      : `All four categories clear, but only ${met} of 4 include a perishable item.`;
+  }
+
+  const sentences = short.map((c) => {
+    const v = REQUIRED_VARIETIES - c.varietiesFound;
+    const u = REQUIRED_UNITS - c.unitsFound;
+    const parts = [
+      v > 0 ? `${v} ${es ? "variedades" : `variet${v === 1 ? "y" : "ies"}`}` : null,
+      u > 0 ? `${u} ${es ? "unidades" : "units"}` : null,
+    ].filter(Boolean);
+    return es
+      ? `A ${c.label} le faltan ${parts.join(" y ")}.`
+      : `${c.label} is ${parts.join(" and ")} short.`;
+  });
+
+  // Mention the rest only when some of them clear: "The other 0 categories
+  // clear" read as a bug on the live demo.
+  const clearing = result.categories.length - short.length;
+  if (clearing === 1) {
+    sentences.push(es ? "La otra categoría cumple." : "The other category clears.");
+  } else if (clearing > 1) {
+    sentences.push(
+      es ? `Las otras ${clearing} categorías cumplen.` : `The other ${clearing} categories clear.`,
+    );
+  }
+  return sentences.join(" ");
+}
+
+/** Spanish for the fixed reasons the scan route writes on a held-back line. */
+const HELD_BACK_REASONS_ES: Record<string, string> = {
+  "Could not determine the pack count.": "No se pudo determinar cuántas unidades trae cada empaque.",
+  "Could not read the quantity.": "No se pudo leer la cantidad.",
+  "Could not determine pack size or quantity.": "No se pudo determinar el empaque ni la cantidad.",
+  "The transcribed line was not fully legible.": "La línea no se pudo leer por completo.",
+};
+
+/**
+ * A held-back line's reason in the reader's language. Reasons the model wrote
+ * itself are English free text, so Spanish mode falls back to "No se contó."
+ */
+export function heldBackReason(reason: string, locale: Locale): string {
+  if (locale === "en") return reason;
+  const lowConfidence = reason.match(/^Low confidence \((\d+(?:\.\d+)?)\)\.$/);
+  if (lowConfidence) return `Lectura poco confiable (${lowConfidence[1]}).`;
+  return HELD_BACK_REASONS_ES[reason] ?? "No se contó.";
+}

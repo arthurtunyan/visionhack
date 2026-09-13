@@ -7,11 +7,15 @@ import { Button } from "@/components/Button";
 import { Pill } from "@/components/Pill";
 import { CategoryBar } from "@/components/CategoryBar";
 import { downscaleImage } from "@/lib/downscale";
-import { sampleScorecard } from "@/lib/sample-data";
+import { SAMPLE_HELD_BACK, sampleScorecard } from "@/lib/sample-data";
 import {
   UI_COPY,
   REQUIRED_VARIETIES,
   REQUIRED_UNITS,
+  formatScanDate,
+  heldBackReason,
+  scorecardReading,
+  shortCategories,
   type Locale,
 } from "@/lib/ui-copy";
 import type { ScanResult } from "@/lib/mock-data";
@@ -19,6 +23,31 @@ import type { ScanResponse } from "@/lib/types";
 import styles from "./DemoScanner.module.css";
 
 type Status = "idle" | "scanning" | "done" | "error";
+
+/** A line the scan read but did not count, with its reason in both languages. */
+interface HeldBackRow {
+  line: string;
+  reason: string;
+  reasonEs: string;
+}
+
+interface Scan {
+  en: ScanResult;
+  es: ScanResult;
+  heldBack: HeldBackRow[];
+}
+
+function sampleScan(): Scan {
+  return {
+    en: sampleScorecard("en"),
+    es: sampleScorecard("es"),
+    heldBack: SAMPLE_HELD_BACK.map((row) => ({
+      line: `${row.line} ${row.pack}`,
+      reason: row.reason,
+      reasonEs: row.reasonEs,
+    })),
+  };
+}
 
 interface DemoScannerProps {
   /**
@@ -40,9 +69,7 @@ export function DemoScanner({ onResult, startEmpty = false }: DemoScannerProps =
   // Both languages come back on a single scan, so keep both and pick at render
   // time. Storing only the active one is why switching language used to do
   // nothing after a real scan.
-  const [scan, setScan] = useState<{ en: ScanResult; es: ScanResult } | null>(() =>
-    startEmpty ? null : { en: sampleScorecard("en"), es: sampleScorecard("es") },
-  );
+  const [scan, setScan] = useState<Scan | null>(() => (startEmpty ? null : sampleScan()));
   const [isSample, setIsSample] = useState(!startEmpty);
   const [errorMsg, setErrorMsg] = useState("");
   const [storeName, setStoreName] = useState("");
@@ -69,7 +96,17 @@ export function DemoScanner({ onResult, startEmpty = false }: DemoScannerProps =
           setStatus("error");
           return;
         }
-        setScan({ en: data.scorecard, es: data.scorecardEs });
+        setScan({
+          en: data.scorecard,
+          es: data.scorecardEs,
+          // Held-back lines stay visible so a reader can see why a line on the
+          // order record is missing from the counts.
+          heldBack: data.excluded.map((item) => ({
+            line: item.description,
+            reason: item.reason,
+            reasonEs: heldBackReason(item.reason, "es"),
+          })),
+        });
         setStatus("done");
         onResult?.(data.scorecard);
       } catch {
@@ -86,9 +123,9 @@ export function DemoScanner({ onResult, startEmpty = false }: DemoScannerProps =
   };
 
   const loadSample = () => {
-    const en = sampleScorecard("en");
-    setScan({ en, es: sampleScorecard("es") });
-    onResult?.(en);
+    const sample = sampleScan();
+    setScan(sample);
+    onResult?.(sample.en);
     setIsSample(true);
     setStatus("done");
   };
@@ -210,7 +247,12 @@ export function DemoScanner({ onResult, startEmpty = false }: DemoScannerProps =
                 exit={reduce ? undefined : { opacity: 0 }}
                 transition={{ duration: 0.28, ease: [0.22, 0.68, 0.28, 1] }}
               >
-                <Scorecard result={result} locale={locale} isSample={isSample} />
+                <Scorecard
+                  result={result}
+                  heldBack={scan?.heldBack ?? []}
+                  locale={locale}
+                  isSample={isSample}
+                />
               </motion.div>
             ) : null}
           </AnimatePresence>
@@ -222,47 +264,21 @@ export function DemoScanner({ onResult, startEmpty = false }: DemoScannerProps =
 
 function Scorecard({
   result,
+  heldBack,
   locale,
   isSample,
 }: {
   result: ScanResult;
+  heldBack: HeldBackRow[];
   locale: Locale;
   isSample: boolean;
 }) {
   const t = UI_COPY[locale];
   const es = locale === "es";
   const pass = result.overallStatus === "pass";
-  const short = result.categories.filter(
-    (c) => c.varietiesFound < REQUIRED_VARIETIES || c.unitsFound < REQUIRED_UNITS,
-  );
-  const passing = result.categories.length - short.length;
-  const dateFmt = new Intl.DateTimeFormat(es ? "es" : "en", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(new Date(result.scanDate));
-
-  /** One sentence a store owner can act on without reading the rest. */
-  const reading = pass
-    ? es
-      ? "Las cuatro categorías cumplen el mínimo. No hay nada que corregir esta semana."
-      : "All four categories clear the minimum. Nothing to fix this week."
-    : short
-        .map((c) => {
-          const v = REQUIRED_VARIETIES - c.varietiesFound;
-          const u = REQUIRED_UNITS - c.unitsFound;
-          const parts = [
-            v > 0 ? `${v} ${es ? "variedades" : `variet${v === 1 ? "y" : "ies"}`}` : null,
-            u > 0 ? `${u} ${es ? "unidades" : "units"}` : null,
-          ].filter(Boolean);
-          return es
-            ? `A ${c.label} le faltan ${parts.join(" y ")}.`
-            : `${c.label} is ${parts.join(" and ")} short.`;
-        })
-        .join(" ") +
-      (es
-        ? ` Las otras ${passing} categorías cumplen.`
-        : ` The other ${passing} categories clear.`);
+  const passing = result.categories.length - shortCategories(result).length;
+  const dateFmt = formatScanDate(result.scanDate, locale);
+  const reading = scorecardReading(result, locale);
 
   const stats = [
     {
@@ -358,6 +374,35 @@ function Scorecard({
           );
         })}
       </div>
+
+      {heldBack.length > 0 ? (
+        <div className={styles.heldBack}>
+          <h3 className={styles.blockTitle}>
+            {es ? "Líneas que no contamos" : "Lines we did not count"}
+          </h3>
+          <p className={styles.blockIntro}>
+            {es
+              ? "Cada línea que el escaneo no pudo contar con certeza aparece aquí con el motivo. Ninguna se adivina."
+              : "Every line the scan could not count with certainty is listed here with the reason. None of them are guessed at."}
+          </p>
+          <table className={styles.hbTable}>
+            <thead>
+              <tr>
+                <th>{es ? "Línea" : "Line"}</th>
+                <th>{es ? "Motivo" : "Reason"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {heldBack.map((row, i) => (
+                <tr key={`${i}-${row.line}`}>
+                  <td className={styles.hbLine}>{row.line}</td>
+                  <td className={styles.hbReason}>{es ? row.reasonEs : row.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
 
       <div className={styles.fixes}>
         <h3 className={styles.blockTitle}>{t.fixesTitle}</h3>

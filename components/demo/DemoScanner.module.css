@@ -398,3 +398,48 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+.heldBack {
+  margin-top: 34px;
+  padding-top: 30px;
+  border-top: 1px solid var(--line);
+}
+.blockIntro {
+  font-size: 14px;
+  color: var(--mute);
+  text-align: center;
+  max-width: 520px;
+  margin: 0 auto 22px;
+  line-height: 1.55;
+}
+.hbTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.hbTable th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  font-weight: 600;
+  padding: 0 12px 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.hbTable td {
+  padding: 12px 12px 12px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.hbLine {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.hbReason {
+  color: var(--mute);
+}
+@media (max-width: 760px) {
+  .hbTable {
+    font-size: 12.5px;
+  }
+}

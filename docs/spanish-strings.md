@@ -22,8 +22,10 @@ The English and Spanish text lives in
 - **Item names and varieties** (`items[].name`, `items[].variety`, and top-up
   fixes such as "Select Cucumber bushel (surta 1 más)"). They're printed on the
   invoice or named by the classifier.
-- **`excluded[].reason`**. Some reasons are written by the model. In Spanish
-  mode show "No se contó" instead.
+- **`excluded[].reason`** from the API is English. The demo translates the
+  fixed reasons the route writes (pack count, quantity, legibility, low
+  confidence) with `heldBackReason` in [`lib/ui-copy.ts`](../lib/ui-copy.ts).
+  Reasons the model wrote itself show "No se contó." in Spanish mode.
 - **`error.message`**. In Spanish mode show the generic error below.
 
 ## Screen labels
@@ -42,6 +44,9 @@ visible beside every result.
 | Photo button | Take a photo | Tomar una foto |
 | Loading | Reading your invoice… | Leyendo su factura… |
 | Scan date | Scanned {date} | Escaneado el {date} |
+| Held-back title | Lines we did not count | Líneas que no contamos |
+| Held-back intro | Every line the scan could not count with certainty is listed here with the reason. None of them are guessed at. | Cada línea que el escaneo no pudo contar con certeza aparece aquí con el motivo. Ninguna se adivina. |
+| Held-back columns | Line · Reason | Línea · Motivo |
 | Overall pass | Estimated to meet the SNAP stocking standard | La estimación indica que cumple con el requisito de surtido de SNAP |
 | Overall fail | May not meet the stocking standard yet | Es posible que aún no cumpla con el requisito de surtido |
 | Category chip | At threshold / Below threshold | Al nivel requerido / Debajo del nivel requerido |

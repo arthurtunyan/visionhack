@@ -308,7 +308,6 @@ export const FOOTER_COLUMNS = [
       { href: "/pitch", label: "The 5-minute version" },
       { href: "/dashboard", label: "Dashboard" },
       { href: "/demo", label: "Live demo" },
-      { href: "/dashboard", label: "Dashboard" },
       { href: "/coverage", label: "Coverage" },
       { href: "/pricing", label: "Pricing" },
       { href: "/faq", label: "FAQ" },
