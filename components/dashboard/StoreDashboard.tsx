@@ -204,7 +204,7 @@ export function StoreDashboard() {
             transition={{ duration: 0.34, ease: EASE }}
             style={{ overflow: "hidden" }}
           >
-            <DemoScanner onResult={onScan} />
+            <DemoScanner onResult={onScan} startEmpty />
           </motion.div>
         ) : null}
       </AnimatePresence>

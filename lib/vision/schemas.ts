@@ -41,7 +41,7 @@ export const ClassifiedItemSchema = z.object({
   quantity: z.number().nullable(),
   /** How the item is stored. Drives the perishable flag. */
   storage: z.enum(STORAGE_STATES),
-  /** True for butter and any jerky — accessory foods that count for nothing. */
+  /** True for non-peanut butter and any jerky — accessories that count for nothing. */
   accessory: z.boolean(),
   /** 0..1 confidence in this whole classification. */
   confidence: z.number(),

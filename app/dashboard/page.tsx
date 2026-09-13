@@ -4,13 +4,14 @@ import { Footer } from "@/components/Footer";
 import { Section } from "@/components/Section";
 import { PageHeader } from "@/components/PageHeader";
 import { StoreDashboard } from "@/components/dashboard/StoreDashboard";
+import { CtaBand } from "@/components/sections/CtaBand";
 import { NON_AFFILIATION } from "@/lib/site-content";
 
 export const metadata: Metadata = {
-  title: "Dashboard — every deadline and the shelves",
+  title: "The dashboard",
   description:
-    "One readiness figure across every licence, permit and deadline a store answers to, " +
-    "with the wholesale order-record scan feeding the SNAP stocking standard directly into it.",
+    "Every licence a store holds on one screen: renewal dates, what is due this week, " +
+    "and a wholesale order-record scan that feeds the SNAP stocking standard into the same score.",
 };
 
 export default function DashboardPage() {
@@ -19,19 +20,20 @@ export default function DashboardPage() {
       <Nav />
       <main>
         <PageHeader
-          eyebrow="Dashboard"
-          title="Every deadline, and the shelves, in one number."
-          intro="Paperwork and stocking are the two ways a store loses SNAP. Scan a wholesale order record and the result moves the same score your permits do."
+          eyebrow="The dashboard"
+          title="Eight licences on one screen."
+          intro="What a store owner sees after signing in: what is due, how long they have, and where the last order-record scan left them. Everything here is live, so edit a date or run a scan and the score moves."
         />
         <Section ground="tint">
           <StoreDashboard />
           <p
             className="small mute"
-            style={{ maxWidth: 720, margin: "36px auto 0", textAlign: "center" }}
+            style={{ maxWidth: 720, margin: "34px auto 0", textAlign: "center" }}
           >
-            {NON_AFFILIATION}
+            Your entries stay in this browser. {NON_AFFILIATION}
           </p>
         </Section>
+        <CtaBand title="Put your licences on this screen." />
       </main>
       <Footer />
     </>

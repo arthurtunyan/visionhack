@@ -8,9 +8,9 @@ import { CtaBand } from "@/components/sections/CtaBand";
 import { NON_AFFILIATION } from "@/lib/site-content";
 
 export const metadata: Metadata = {
-  title: "Live demo — scan a wholesale order record",
+  title: "Live demo: scan a wholesale order record",
   description:
-    "Photograph a wholesale order record and see the stocking scorecard Ledger builds — in English or Spanish, with every uncertain line held back.",
+    "Photograph a wholesale order record and see the stocking scorecard Ledger builds, in English or Spanish, with every uncertain line held back.",
 };
 
 export default function DemoPage() {
@@ -21,7 +21,7 @@ export default function DemoPage() {
         <PageHeader
           eyebrow="Live demo"
           title="Scan an order record. Read the scorecard."
-          intro="Upload a photo of a printed wholesale order record, or load a sample. Ledger counts only what it can read, and holds back anything it can't."
+          intro="Upload a photo of a printed wholesale order record, or load one of our samples. Ledger counts only what it can read and holds back anything it can't."
         />
         <Section ground="tint">
           <DemoScanner />

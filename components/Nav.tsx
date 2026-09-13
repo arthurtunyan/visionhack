@@ -29,7 +29,7 @@ export function Nav() {
     <header className={styles.header} data-scrolled={scrolled || menuOpen}>
       <div className={styles.bar}>
         <Link href="/" className={styles.brand} aria-label="Ledger home">
-          <Logo height={24} />
+          <Logo height={32} />
         </Link>
 
         <nav className={styles.links} aria-label="Primary">

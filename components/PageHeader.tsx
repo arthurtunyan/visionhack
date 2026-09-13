@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Section } from "./Section";
+import { Logo } from "./Logo";
 import { Reveal } from "./Reveal";
 import styles from "./PageHeader.module.css";
 
@@ -15,7 +16,10 @@ export function PageHeader({ eyebrow, title, intro, children }: PageHeaderProps)
     <Section ground="paper">
       <div className={styles.head}>
         <Reveal>
-          <p className={`eyebrow ${styles.eyebrow}`}>{eyebrow}</p>
+          <p className={`eyebrow ${styles.eyebrow}`}>
+            <Logo variant="mark" height={20} />
+            {eyebrow}
+          </p>
         </Reveal>
         <Reveal delay={0.05}>
           <h1 className={`display-xl ${styles.title}`}>{title}</h1>

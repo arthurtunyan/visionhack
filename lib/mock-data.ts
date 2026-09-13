@@ -92,7 +92,7 @@ export const MOCK_RESULT: ScanResult = {
     {
       category: 'dairy',
       itemSuggestion: 'Carnation Evaporated Milk, 12 oz can (stock 3)',
-      whyItHelps: 'Shelf-stable and under $2 a can — adds a 5th dairy variety with no fridge space.',
+      whyItHelps: 'Shelf-stable and under $2 a can. Adds a 5th dairy variety with no fridge space.',
     },
     {
       category: 'dairy',

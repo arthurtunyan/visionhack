@@ -2,7 +2,7 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tile {
@@ -23,7 +23,20 @@
 }
 
 .tile[data-tone="dark"] {
-  background: var(--line-dark);
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid transparent;
+}
+
+.abbr {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-align: center;
+}
+
+:global([data-ground="coal"]) .abbr {
   color: var(--paper);
 }
 

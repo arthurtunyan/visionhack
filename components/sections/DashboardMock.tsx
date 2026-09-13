@@ -1,4 +1,5 @@
 import { CategoryBar } from "@/components/CategoryBar";
+import { Logo } from "@/components/Logo";
 import { Pill } from "@/components/Pill";
 import { StatRing } from "@/components/StatRing";
 import styles from "./DashboardMock.module.css";
@@ -14,7 +15,10 @@ export function DashboardMock() {
   return (
     <div className={styles.mock}>
       <div className={styles.sidebar}>
-        <div className={styles.brandRow}>Corner Market</div>
+        <div className={styles.brandRow}>
+          <Logo variant="mark" height={18} />
+          Corner Market
+        </div>
         <nav className={styles.nav}>
           <span data-active="true">Scorecard</span>
           <span>Permits</span>

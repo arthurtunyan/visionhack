@@ -15,12 +15,12 @@ const SITE_DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL("https://ledger.vercel.app"),
   title: {
-    default: "Ledger — Every permit your store holds, in one place",
-    template: "%s — Ledger",
+    default: "Ledger: every permit your store holds, in one place",
+    template: "%s · Ledger",
   },
   description: SITE_DESCRIPTION,
   openGraph: {
-    title: "Ledger — Every permit your store holds, in one place",
+    title: "Ledger: every permit your store holds, in one place",
     description: SITE_DESCRIPTION,
     type: "website",
     images: [{ url: "/og-image-1200x630.png", width: 1200, height: 630 }],

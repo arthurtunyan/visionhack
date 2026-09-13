@@ -44,9 +44,9 @@ export function Hero() {
 
         <motion.p className={`body-l ${styles.heroBody}`} {...rise(0.1)}>
           SNAP, WIC, county health, food handler, tobacco, ABC, scales, business
-          tax. Enter each license once and ledger tracks every renewal, flags what
-          is expiring, and checks your stocking against the USDA rule that hits
-          November 4.
+          tax. Enter each license once. Ledger watches the renewal dates, tells you
+          what is about to expire, and checks your stocking against the USDA rule
+          that hits November 4.
         </motion.p>
 
         <motion.div className={styles.heroStat} {...rise(0.12)}>

@@ -14,10 +14,12 @@
 import {
   CATEGORIES,
   MIN_COUNTED_CONFIDENCE,
+  categoryForKnownFood,
   computePerishable,
   computeStockingUnits,
   floorVarietyCount,
   isAccessoryFood,
+  isPeanutButter,
   varietyQualifies,
   type Category,
 } from "./constants";
@@ -38,9 +40,12 @@ export function partitionClassifiedItems(classified: ClassifiedItem[]): Partitio
     // Clamp: the schema constrains the type, not the range.
     const confidence = Math.min(1, Math.max(0, item.confidence));
 
-    // RULE 1 — trust the model's flag OR our own name match, whichever fires.
-    // Over-matching here can only lower a score, never inflate one.
-    const accessory = item.accessory || isAccessoryFood(item.variety, item.sourceLineText);
+    // RULE 1 — deterministic product decisions override a stale model flag.
+    const peanutButter = isPeanutButter(item.variety, item.sourceLineText);
+    const category = categoryForKnownFood(item.category, item.variety, item.sourceLineText);
+    const accessory = peanutButter
+      ? false
+      : item.accessory || isAccessoryFood(item.variety, item.sourceLineText);
 
     const rawUnits = computeStockingUnits(item.quantity, item.packCount);
 
@@ -58,7 +63,7 @@ export function partitionClassifiedItems(classified: ClassifiedItem[]): Partitio
         description: item.sourceLineText,
         reason: hardReason,
         confidence,
-        category: item.category,
+        category,
       });
       continue;
     }
@@ -70,14 +75,14 @@ export function partitionClassifiedItems(classified: ClassifiedItem[]): Partitio
         description: item.sourceLineText,
         reason: "Could not determine pack size or quantity.",
         confidence,
-        category: item.category,
+        category,
       });
       continue;
     }
 
     items.push({
       description: item.sourceLineText,
-      category: item.category,
+      category,
       variety: item.variety,
       quantity: item.quantity,
       packCount: item.packCount,
@@ -85,7 +90,7 @@ export function partitionClassifiedItems(classified: ClassifiedItem[]): Partitio
       stockingUnits: accessory ? 0 : (rawUnits as number),
       accessory,
       storage: item.storage,
-      // RULE 3 — perishable means refrigerated or fresh.
+      // RULE 3 — perishability is derived from storage.
       perishable: computePerishable(item.storage),
       confidence,
     });
