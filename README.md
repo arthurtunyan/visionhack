@@ -77,6 +77,9 @@ npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
 npm test           # unit and API-contract tests — no server, no API key
 npm run smoke      # end-to-end check (run `npm run build` first)
+
+python3 brand/tools/build-static-site.py   # regenerate the static fallback
+python3 scripts/check-static-site.py       # verify it — no browser, no network
 ```
 
 ### Verifying it works
@@ -107,6 +110,18 @@ Or straight curl against a deployment:
 curl -sS -X POST https://<app>.vercel.app/api/scan \
   -F "image=@fixtures/sample-invoice.png" | jq
 ```
+
+### Static fallback
+
+[`site/`](site/README.md) is a self-contained copy of the site that runs on
+GitHub Pages with no build step, no server and no key. The scan demo there calls
+the live API first and replays a saved scan of `fixtures/sample-invoice.png`
+when it cannot reach it, so a broken deployment costs the accuracy of the result
+and not the demo. It is published by `.github/workflows/pages.yml` on every push
+to `main` that touches it.
+
+The fallback's thresholds are checked against `lib/rule-engine.ts` in CI, so the
+two cannot drift apart silently.
 
 ## API
 
