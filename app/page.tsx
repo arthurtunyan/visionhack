@@ -6,9 +6,7 @@ import { WhatWeDo } from "@/components/sections/WhatWeDo";
 import { Industries } from "@/components/sections/Industries";
 import { HowItWorks } from "@/components/sections/HowItWorks";
 import { Coverage } from "@/components/sections/Coverage";
-import { SocialProof } from "@/components/sections/SocialProof";
 import { Pricing } from "@/components/sections/Pricing";
-import { Faq } from "@/components/sections/Faq";
 import { CtaBand } from "@/components/sections/CtaBand";
 
 export default function HomePage() {
@@ -22,9 +20,7 @@ export default function HomePage() {
         <Industries />
         <HowItWorks />
         <Coverage ground="coal" />
-        <SocialProof />
         <Pricing />
-        <Faq />
         <CtaBand />
       </main>
       <Footer />

@@ -19,6 +19,7 @@
     "lib/rule-engine.ts",
     "lib/scorecard-copy.ts",
     "lib/mock-data.ts",
+    "lib/calendar.ts",
     "lib/vision/pipeline.ts",
     "lib/vision/prompts.ts",
     "lib/vision/schemas.ts"
