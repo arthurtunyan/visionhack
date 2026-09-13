@@ -299,7 +299,6 @@ export const FOOTER_COLUMNS = [
       { href: "/how-it-works", label: "How it works" },
       { href: "/dashboard", label: "Dashboard" },
       { href: "/demo", label: "Live demo" },
-      { href: "/dashboard", label: "Dashboard" },
       { href: "/coverage", label: "Coverage" },
       { href: "/pricing", label: "Pricing" },
       { href: "/faq", label: "FAQ" },
