@@ -111,6 +111,28 @@
   border-radius: 50%;
   background: var(--blue);
 }
+/* The hero scorecard links to the dashboard. Keep it visually identical to
+   the static version, with a focus ring for keyboard users. */
+.heroWindowLink {
+  display: block;
+  border-radius: var(--r-card);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.22s ease;
+}
+.heroWindowLink:hover {
+  transform: translateY(-2px);
+}
+.heroWindowLink:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroWindowLink:hover {
+    transform: none;
+  }
+}
+
 .heroWindow {
   width: min(1240px, 100%);
   margin: 0 auto -1px;

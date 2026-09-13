@@ -8,8 +8,10 @@
  * survive being embedded in the Framer site, so a throw here must never reach
  * the UI.
  */
+import type { ScanResult } from "./mock-data";
 import {
   OBLIGATIONS,
+  SNAP_RULE,
   getObligation,
   statusField,
   type Obligation,
@@ -42,11 +44,19 @@ export interface ObligationState {
   note?: string;
 }
 
+/** The last invoice scored, kept so the dashboard survives a reload. */
+export interface StoredScan {
+  /** When the scan ran, ISO datetime. */
+  at: string;
+  result: ScanResult;
+}
+
 export interface Store {
   name: string;
   address: string;
   obligations: Partial<Record<ObligationKey, ObligationState>>;
   employees: Employee[];
+  lastScan?: StoredScan;
 }
 
 export const STORAGE_KEY = "ledger.store.v1";
@@ -146,6 +156,23 @@ export function evaluate(store: Store, o: Obligation): ObligationStatus {
     return { key: o.key, status: "na", days: null, date: null, checked, total };
   }
 
+  /*
+   * SNAP is the one obligation with two ways to fail. The renewal date is the
+   * calendar half; the staple-stocking standard is the shelf half, and a store
+   * whose last invoice came back short is at risk whatever the date says. A
+   * scan older than the rule's window is not evidence of today's shelves, so it
+   * stops counting rather than propping the score up.
+   */
+  if (o.key === "snap") {
+    const evidence = scanEvidence(store);
+    if (evidence?.fresh && evidence.result.overallStatus === "fail") {
+      const field = statusField(o);
+      const raw = field ? state?.values?.[field.key] : undefined;
+      const days = raw ? daysUntil(raw) : null;
+      return { key: o.key, status: "critical", days, date: days !== null ? raw! : null, checked, total };
+    }
+  }
+
   if (o.key === "foodHandler") {
     const { days, date } = foodHandlerStatus(store);
     return { key: o.key, status: statusFromDays(days), days, date, checked, total };
@@ -238,6 +265,31 @@ export function emptyStore(): Store {
   return { name: "", address: "", obligations: {}, employees: [] };
 }
 
+// ---------------------------------------------------------------------------
+// Stocking evidence
+// ---------------------------------------------------------------------------
+export interface ScanEvidence {
+  result: ScanResult;
+  /** Whole days since the scan. */
+  ageDays: number;
+  /**
+   * Whether the scan still counts. Orders inside the rule's 21-day window are
+   * evidence of stock on the shelf; older than that and it proves nothing about
+   * what is there today.
+   */
+  fresh: boolean;
+}
+
+export function scanEvidence(store: Store, from: string = today()): ScanEvidence | null {
+  const scan = store.lastScan;
+  if (!scan?.result) return null;
+  const scannedOn = scan.at.slice(0, 10);
+  const days = daysUntil(scannedOn, from);
+  if (days === null) return null;
+  const ageDays = Math.max(0, -days);
+  return { result: scan.result, ageDays, fresh: ageDays <= SNAP_RULE.recentOrderWindowDays };
+}
+
 export function loadStore(): Store | null {
   const ls = safeLocalStorage();
   if (!ls) return memory;
@@ -292,7 +344,18 @@ export function normalize(raw: Partial<Store> | null | undefined): Store {
     employees: Array.isArray(raw.employees)
       ? raw.employees.filter((e) => e && typeof e.name === "string")
       : [],
+    // Carried through explicitly. Rebuilding the store field by field is how
+    // this got dropped on reload the first time.
+    lastScan: validScan(raw.lastScan),
   };
+}
+
+/** A stored scan is only usable if it still has a timestamp and a scorecard. */
+function validScan(raw: Partial<StoredScan> | null | undefined): StoredScan | undefined {
+  if (!raw || typeof raw.at !== "string" || !raw.result) return undefined;
+  const result = raw.result as ScanResult;
+  if (!Array.isArray(result.categories)) return undefined;
+  return { at: raw.at, result };
 }
 
 export function stateFor(store: Store, key: ObligationKey): ObligationState {
@@ -336,7 +399,7 @@ export function sampleStore(): Store {
     ],
     obligations: {
       snap: {
-        values: { fnsNumber: "0412887", reauthorizationDue: inDays(74) },
+        values: { fnsNumber: "0412887", reauthorizationDue: inDays(320) },
         done: [1, 3, 4],
         note: "Reauthorization packet arrived. Dairy is the gap.",
       },

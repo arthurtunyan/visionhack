@@ -265,3 +265,72 @@ test("the sample scorecard differs by locale, so the language toggle has somethi
     es.categories.map((c) => c.varietiesFound),
   );
 });
+
+// ---------------------------------------------------------------------------
+// The unified flow: a scan has to move the same score the permits move.
+function withScan(result, agedDays = 0) {
+  const at = new Date();
+  at.setDate(at.getDate() - agedDays);
+  return { ...sampleStore(), lastScan: { at: at.toISOString(), result } };
+}
+
+const PASSING = { ...require(resolve(root, ".smoke-build/mock-data.js")).MOCK_RESULT, overallStatus: "pass" };
+const FAILING = { ...require(resolve(root, ".smoke-build/mock-data.js")).MOCK_RESULT, overallStatus: "fail" };
+
+test("a failing invoice puts SNAP at risk even when the renewal date is far off", () => {
+  const { scanEvidence } = store;
+  const s = withScan(FAILING);
+  // The sample store's SNAP renewal is far out, i.e. "ok" on dates alone.
+  const onDatesAlone = evaluate(sampleStore(), OBLIGATION_BY_KEY.snap);
+  assert.equal(onDatesAlone.status, "ok");
+  assert.equal(evaluate(s, OBLIGATION_BY_KEY.snap).status, "critical");
+  assert.equal(scanEvidence(s).fresh, true);
+});
+
+test("a passing invoice leaves the renewal date in charge", () => {
+  assert.equal(evaluate(withScan(PASSING), OBLIGATION_BY_KEY.snap).status, "ok");
+});
+
+test("an invoice older than the 21 day window stops counting as evidence", () => {
+  const stale = withScan(FAILING, SNAP_RULE.recentOrderWindowDays + 1);
+  assert.equal(store.scanEvidence(stale).fresh, false);
+  // Stale evidence must not hold SNAP at critical, and must not be silently
+  // treated as a pass either — the date takes over again.
+  assert.equal(evaluate(stale, OBLIGATION_BY_KEY.snap).status, "ok");
+});
+
+test("an invoice exactly on the window boundary still counts", () => {
+  const edge = withScan(FAILING, SNAP_RULE.recentOrderWindowDays);
+  assert.equal(store.scanEvidence(edge).fresh, true);
+  assert.equal(evaluate(edge, OBLIGATION_BY_KEY.snap).status, "critical");
+});
+
+test("a failing scan lowers overall readiness", () => {
+  const before = readiness(evaluateAll(sampleStore())).ratio;
+  const after = readiness(evaluateAll(withScan(FAILING))).ratio;
+  // Strictly lower, not just "not higher". A scan the owner can watch land is
+  // the whole point of putting stocking and paperwork on one number.
+  assert.ok(after < before, `readiness did not drop after a failing scan: ${before} -> ${after}`);
+});
+
+test("scanEvidence is null when nothing has been scanned", () => {
+  assert.equal(store.scanEvidence(sampleStore()), null);
+  assert.equal(store.scanEvidence({ ...sampleStore(), lastScan: undefined }), null);
+});
+
+test("a scan survives a round trip through storage", () => {
+  const saved = withScan(FAILING);
+  const reloaded = normalize(JSON.parse(JSON.stringify(saved)));
+  assert.ok(reloaded.lastScan, "lastScan was dropped by normalize");
+  assert.equal(reloaded.lastScan.at, saved.lastScan.at);
+  assert.equal(reloaded.lastScan.result.overallStatus, "fail");
+  // And it still drives SNAP after the round trip.
+  assert.equal(evaluate(reloaded, OBLIGATION_BY_KEY.snap).status, "critical");
+});
+
+test("a malformed stored scan is dropped rather than crashing the dashboard", () => {
+  for (const bad of [{ at: "2026-09-12" }, { result: {} }, { at: 5, result: FAILING }, null]) {
+    const reloaded = normalize({ ...sampleStore(), lastScan: bad });
+    assert.equal(reloaded.lastScan, undefined, `kept a bad scan: ${JSON.stringify(bad)}`);
+  }
+});

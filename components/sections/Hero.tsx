@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
 import { AppWindow } from "@/components/AppWindow";
 import { Button } from "@/components/Button";
 import { CountUp } from "@/components/CountUp";
@@ -75,9 +76,17 @@ export function Hero() {
           animate={reduce ? undefined : { opacity: 1, x: 0, scale: 1 }}
           transition={{ duration: 0.42, ease: EASE, delay: 0.28 }}
         >
-          <AppWindow>
-            <DashboardMock />
-          </AppWindow>
+          {/* The hero scorecard is the most-clicked thing on the page. It
+              opens the real dashboard rather than sitting there as a picture. */}
+          <Link
+            href="/dashboard"
+            className={styles.heroWindowLink}
+            aria-label="Open the dashboard"
+          >
+            <AppWindow>
+              <DashboardMock />
+            </AppWindow>
+          </Link>
         </motion.div>
       </div>
     </section>

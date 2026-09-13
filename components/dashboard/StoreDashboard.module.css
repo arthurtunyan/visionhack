@@ -1,0 +1,114 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  text-align: left;
+}
+
+.topGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.ringCard,
+.stockCard {
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--paper);
+  padding: 24px;
+}
+
+.ringCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.ringHead {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 2px;
+}
+
+.stockCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.stockHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.stockHead h2 {
+  margin: 2px 0 0;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stale {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--warn);
+  border-left: 2px solid var(--warn);
+  padding-left: 10px;
+}
+
+.stockActions {
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.scanner {
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 20px;
+  background: var(--wash);
+}
+
+.listSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.listSection h2 {
+  margin: 0;
+}
+.listSection > :global(.small) {
+  margin: 0 0 12px;
+}
+
+/* Second line inside a table cell: the penalty, or the relative date. */
+.sub {
+  display: block;
+  font-size: 12.5px;
+  color: var(--mute);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.empty {
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 40px 28px;
+  text-align: center;
+}
+.emptyActions {
+  margin-top: 18px;
+}
+
+@media (max-width: 860px) {
+  .topGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ringCard {
+    flex-direction: column;
+    text-align: center;
+  }
+}

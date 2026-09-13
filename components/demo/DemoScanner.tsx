@@ -16,7 +16,16 @@ import styles from "./DemoScanner.module.css";
 
 type Status = "idle" | "scanning" | "done" | "error";
 
-export function DemoScanner() {
+interface DemoScannerProps {
+  /**
+   * Called with the English scorecard whenever one is produced, including the
+   * sample. The dashboard uses it to fold stocking into the readiness score;
+   * the marketing demo leaves it unset and stays self-contained.
+   */
+  onResult?: (result: ScanResult) => void;
+}
+
+export function DemoScanner({ onResult }: DemoScannerProps = {}) {
   const [locale, setLocale] = useState<Locale>("en");
   const [status, setStatus] = useState<Status>("idle");
   // Both languages come back on a single scan, so keep both and pick at render
@@ -51,12 +60,13 @@ export function DemoScanner() {
         }
         setScan({ en: data.scorecard, es: data.scorecardEs });
         setStatus("done");
+        onResult?.(data.scorecard);
       } catch {
         setErrorMsg(t.tryError);
         setStatus("error");
       }
     },
-    [storeName, t.tryError],
+    [storeName, t.tryError, onResult],
   );
 
   const onFile = (files: FileList | null) => {
@@ -65,7 +75,9 @@ export function DemoScanner() {
   };
 
   const loadSample = () => {
-    setScan({ en: sampleScorecard("en"), es: sampleScorecard("es") });
+    const en = sampleScorecard("en");
+    setScan({ en, es: sampleScorecard("es") });
+    onResult?.(en);
     setIsSample(true);
     setStatus("done");
   };
