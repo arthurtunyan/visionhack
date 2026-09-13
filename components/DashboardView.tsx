@@ -100,7 +100,10 @@ export function DashboardView() {
         <div className={styles.sideCard}>
           <span className={styles.sideLabel}>Next due</span>
           <span className={styles.sideValue}>County health permit</span>
-          <span className={styles.sideMeta}>21 Sep 2026 · 9 days</span>
+          <span className={styles.sideMeta}>
+            <span className={styles.sideDot} aria-hidden="true" />
+            21 Sep · 9 days
+          </span>
         </div>
       </aside>
 
@@ -108,34 +111,39 @@ export function DashboardView() {
         <div className={styles.topRow}>
           <div>
             <h2 className={styles.h2}>Overview</h2>
-            <p className={styles.sub}>8 licences tracked · 1 needs attention this week</p>
+            <p className={styles.sub}>Rivera&apos;s Corner Market · updated 6:04am</p>
           </div>
-          <Pill tone="bad">1 action needed</Pill>
+          <span className={styles.topMeta}>
+            <span className={styles.liveDot} aria-hidden="true" />8 licences tracked
+          </span>
         </div>
 
         <div className={styles.cards}>
-          <div className={styles.card}>
-            <span className={styles.cardLabel}>Licences held</span>
-            <span className={`${styles.cardValue} tnum`}>8</span>
-            <span className={styles.cardMeta}>All entered and verified</span>
-          </div>
           <div className={styles.card}>
             <span className={styles.cardLabel}>Due in 30 days</span>
             <span className={`${styles.cardValue} tnum`} data-alert="true">
               2
             </span>
-            <span className={styles.cardMeta}>Health permit, WIC price list</span>
+            <span className={styles.cardMeta}>Health permit · WIC price list</span>
           </div>
           <div className={styles.card}>
-            <span className={styles.cardLabel}>Last invoice scan</span>
+            <span className={styles.cardLabel}>Due in 90 days</span>
+            <span className={`${styles.cardValue} tnum`}>3</span>
+            <span className={styles.cardMeta}>Tobacco · SNAP review · tax</span>
+          </div>
+          <div className={styles.card}>
+            <span className={styles.cardLabel}>Last scan</span>
             <span className={`${styles.cardValue} tnum`}>12 Sep</span>
-            <span className={styles.cardMeta}>84 units counted</span>
+            <span className={styles.cardMeta}>84 units · 4 held back</span>
           </div>
         </div>
 
         <div className={styles.split}>
           <div className={styles.panel}>
-            <h3 className={styles.panelTitle}>SNAP stocking review</h3>
+            <div className={styles.panelHead}>
+              <h3 className={styles.panelTitle}>SNAP stocking review</h3>
+              <span className={styles.panelMeta}>12 Sep</span>
+            </div>
             <div className={styles.scoreRow}>
               <StatRing percent={75} size={124} tone="bad" label="clear" />
               <div className={styles.bars}>
@@ -151,7 +159,10 @@ export function DashboardView() {
           </div>
 
           <div className={styles.panel}>
-            <h3 className={styles.panelTitle}>This week</h3>
+            <div className={styles.panelHead}>
+              <h3 className={styles.panelTitle}>This week</h3>
+              <span className={styles.panelMeta}>3 open</span>
+            </div>
             <ol className={styles.todo}>
               <li>
                 <Pill tone="bad">9 days</Pill>
@@ -170,7 +181,10 @@ export function DashboardView() {
         </div>
 
         <div className={styles.panel}>
-          <h3 className={styles.panelTitle}>Every licence, one calendar</h3>
+          <div className={styles.panelHead}>
+            <h3 className={styles.panelTitle}>Every licence, one calendar</h3>
+            <span className={styles.panelMeta}>8 tracked</span>
+          </div>
           <table className={styles.table}>
             <thead>
               <tr>

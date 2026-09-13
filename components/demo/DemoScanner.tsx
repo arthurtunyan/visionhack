@@ -216,7 +216,6 @@ function Scorecard({
     (c) => c.varietiesFound < REQUIRED_VARIETIES || c.unitsFound < REQUIRED_UNITS,
   );
   const passing = result.categories.length - short.length;
-  const percent = (passing / result.categories.length) * 100;
   const dateFmt = new Intl.DateTimeFormat(es ? "es" : "en", {
     year: "numeric",
     month: "short",

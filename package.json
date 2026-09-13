@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke-scan.mjs",
-    "test": "tsc -p tsconfig.smoke.json && node --test scripts/rules.test.mjs scripts/rule-engine.test.mjs scripts/pipeline.test.mjs"
+    "test": "tsc -p tsconfig.smoke.json && node --test scripts/rules.test.mjs scripts/rule-engine.test.mjs scripts/pipeline.test.mjs scripts/calendar.test.mjs"
   },
   "dependencies": {
     "motion": "^13.2.0",
