@@ -7,7 +7,6 @@ import { Industries } from "@/components/sections/Industries";
 import { HowItWorks } from "@/components/sections/HowItWorks";
 import { Coverage } from "@/components/sections/Coverage";
 import { Pricing } from "@/components/sections/Pricing";
-import { Faq } from "@/components/sections/Faq";
 import { CtaBand } from "@/components/sections/CtaBand";
 
 export default function HomePage() {
@@ -22,7 +21,6 @@ export default function HomePage() {
         <HowItWorks />
         <Coverage ground="coal" />
         <Pricing />
-        <Faq />
         <CtaBand />
       </main>
       <Footer />
