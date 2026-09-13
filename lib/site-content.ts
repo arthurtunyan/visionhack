@@ -297,6 +297,7 @@ export const FOOTER_COLUMNS = [
     title: "Product",
     links: [
       { href: "/how-it-works", label: "How it works" },
+      { href: "/pitch", label: "The 5-minute version" },
       { href: "/dashboard", label: "Dashboard" },
       { href: "/demo", label: "Live demo" },
       { href: "/dashboard", label: "Dashboard" },
