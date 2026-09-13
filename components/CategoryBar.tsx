@@ -1,11 +1,13 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import { REQUIRED_VARIETIES } from "@/lib/ui-copy";
 import styles from "./CategoryBar.module.css";
 
 interface CategoryBarProps {
   name: string;
   count: number;
+  /** Varieties needed to clear the category. Defaults to the real rule. */
   target?: number;
   /** Stagger index for the fill animation. */
   index?: number;
@@ -13,7 +15,7 @@ interface CategoryBarProps {
 
 const EASE = [0.22, 0.68, 0.28, 1] as const;
 
-export function CategoryBar({ name, count, target = 3, index = 0 }: CategoryBarProps) {
+export function CategoryBar({ name, count, target = REQUIRED_VARIETIES, index = 0 }: CategoryBarProps) {
   const reduce = useReducedMotion();
   const short = count < target;
   const segments = Math.max(target, count);

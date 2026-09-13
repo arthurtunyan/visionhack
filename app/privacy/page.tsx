@@ -8,7 +8,7 @@ import styles from "../legal.module.css";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description: "How Ledger handles invoice photographs and store data.",
+  description: "How Ledger handles order-record photographs and store data.",
 };
 
 export default function PrivacyPage() {
@@ -23,12 +23,12 @@ export default function PrivacyPage() {
 
             <h2>What we collect</h2>
             <p>
-              Ledger works from two things: the invoice photographs you upload and
+              Ledger works from two things: the order-record photographs you upload and
               the permit details you enter. We store the transcribed line items and
               the resulting scorecards. We do not sell this data.
             </p>
 
-            <h2>Invoice photographs</h2>
+            <h2>Order-record photographs</h2>
             <p>
               A photo is used to read its line items and is then retained only so you
               can review the scan that produced a scorecard. You can delete a scan,

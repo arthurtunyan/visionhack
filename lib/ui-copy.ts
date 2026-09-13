@@ -4,6 +4,10 @@
  * API's `scorecard` / `scorecardEs`; this file only covers the surrounding UI.
  */
 import type { Locale } from "./scorecard-copy";
+import {
+  REQUIRED_UNITS_PER_CATEGORY,
+  REQUIRED_VARIETIES_PER_CATEGORY,
+} from "./rule-engine";
 
 export type { Locale };
 
@@ -41,15 +45,15 @@ export interface UiCopy {
 
 export const UI_COPY: Record<Locale, UiCopy> = {
   en: {
-    tagline: "Photograph an invoice. Know in seconds if a store is actually stocked.",
-    uploadTitle: "Scan an invoice",
-    uploadHint: "JPG, PNG, or WebP up to 8 MB. A clear photo of the printed invoice works best.",
-    dropHere: "Drop the invoice photo here",
+    tagline: "Photograph a wholesale order record. Know in seconds if a store is actually stocked.",
+    uploadTitle: "Scan a wholesale order record",
+    uploadHint: "JPG, PNG, or WebP up to 8 MB. A clear photo of the printed order record works best.",
+    dropHere: "Drop the order record photo here",
     chooseFile: "Choose photo",
     storeNameLabel: "Store name",
     storeNamePlaceholder: "e.g. Rivera's Corner Market",
     scan: "Run scan",
-    scanning: "Reading invoice",
+    scanning: "Reading order record",
     rescan: "Scan another",
     tryError: "Something went wrong",
     loadSample: "View a sample scorecard",
@@ -72,16 +76,16 @@ export const UI_COPY: Record<Locale, UiCopy> = {
     perishableShort: "perishable",
   },
   es: {
-    tagline: "Fotografíe una factura. Sepa en segundos si una tienda está bien surtida.",
-    uploadTitle: "Escanear una factura",
-    uploadHint: "JPG, PNG o WebP hasta 8 MB. Una foto clara de la factura impresa funciona mejor.",
-    dropHere: "Suelte aquí la foto de la factura",
+    tagline: "Fotografíe un registro de pedido mayorista. Sepa en segundos si una tienda está bien surtida.",
+    uploadTitle: "Escanear un registro de pedido mayorista",
+    uploadHint: "JPG, PNG o WebP hasta 8 MB. Una foto clara del registro de pedido impreso funciona mejor.",
+    dropHere: "Suelte aquí la foto del registro de pedido",
     chooseFile: "Elegir foto",
     storeNameLabel: "Nombre de la tienda",
     storeNamePlaceholder: "ej. Rivera's Corner Market",
     scan: "Escanear",
-    scanning: "Leyendo la factura",
-    rescan: "Escanear otra",
+    scanning: "Leyendo el registro de pedido",
+    rescan: "Escanear otro",
     tryError: "Algo salió mal",
     loadSample: "Ver un ejemplo",
     clear: "Borrar",
@@ -104,6 +108,10 @@ export const UI_COPY: Record<Locale, UiCopy> = {
   },
 };
 
-/** Category-level pass targets, mirrored from the rule engine for display. */
-export const REQUIRED_VARIETIES = 7;
-export const REQUIRED_UNITS = 21;
+/**
+ * Category-level pass targets, re-exported from the rule engine rather than
+ * retyped. Mirroring these by hand is how the marketing page ended up
+ * advertising a 3-variety rule while the scanner scored against 7.
+ */
+export const REQUIRED_VARIETIES = REQUIRED_VARIETIES_PER_CATEGORY;
+export const REQUIRED_UNITS = REQUIRED_UNITS_PER_CATEGORY;

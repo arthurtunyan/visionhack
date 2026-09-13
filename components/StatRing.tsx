@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import styles from "./StatRing.module.css";
 
 interface StatRingProps {
@@ -10,7 +11,51 @@ interface StatRingProps {
   tone?: "blue" | "bad";
 }
 
+/** Framer's standard ease, matching the rest of the site's motion. */
+const EASE = [0.22, 0.68, 0.28, 1] as const;
+const DURATION = 0.7;
+
+/**
+ * Tweens towards `target` every time it changes, but stays put until `active`.
+ *
+ * The ring is both a scroll reveal on the marketing page and a live readout on
+ * the dashboard. Animating only on first view covered the first case and broke
+ * the second: a scan that moved readiness from 63 to 50 snapped without the
+ * drop ever being visible, which is the one number an owner is watching.
+ */
+function useTween(target: number, active: boolean): number {
+  const [value, setValue] = useState(0);
+  const from = useRef(0);
+  const reduce = useReducedMotion();
+
+  useEffect(() => {
+    if (!active) return;
+    if (reduce) {
+      from.current = target;
+      setValue(target);
+      return;
+    }
+    const start = performance.now();
+    const origin = from.current;
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / (DURATION * 1000));
+      const eased = 1 - Math.pow(1 - t, 3);
+      const next = origin + (target - origin) * eased;
+      setValue(next);
+      from.current = next;
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, active, reduce]);
+
+  return value;
+}
+
 export function StatRing({ percent, size = 160, label, tone = "blue" }: StatRingProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(wrapRef, { once: true, amount: 0.6 });
   const reduce = useReducedMotion();
   const clamped = Math.max(0, Math.min(100, percent));
   const stroke = 12;
@@ -18,9 +63,10 @@ export function StatRing({ percent, size = 160, label, tone = "blue" }: StatRing
   const c = 2 * Math.PI * r;
   const offset = c * (1 - clamped / 100);
   const color = tone === "bad" ? "var(--bad)" : "var(--blue)";
+  const shown = useTween(clamped, inView);
 
   return (
-    <div className={styles.wrap} style={{ width: size, height: size }}>
+    <div ref={wrapRef} className={styles.wrap} style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle
           cx={size / 2}
@@ -35,20 +81,20 @@ export function StatRing({ percent, size = 160, label, tone = "blue" }: StatRing
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={color}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
           initial={reduce ? false : { strokeDashoffset: c }}
-          whileInView={reduce ? undefined : { strokeDashoffset: offset }}
-          style={{ strokeDashoffset: reduce ? offset : undefined }}
-          viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.7, ease: [0.22, 0.68, 0.28, 1] }}
+          // Held at full until the ring scrolls into view, then it tracks
+          // `offset` for the life of the component, re-animating on every change.
+          animate={inView ? { strokeDashoffset: offset, stroke: color } : undefined}
+          style={reduce ? { strokeDashoffset: offset, stroke: color } : { stroke: color }}
+          transition={{ duration: DURATION, ease: EASE }}
         />
       </svg>
       <div className={styles.center}>
-        <span className={styles.value}>{Math.round(clamped)}%</span>
+        <span className={styles.value}>{Math.round(shown)}%</span>
         {label ? <span className={styles.label}>{label}</span> : null}
       </div>
     </div>

@@ -12,7 +12,7 @@ export function SocialProof() {
             <blockquote className={styles.spQuote}>
               &ldquo;We lost SNAP authorization once over two produce varieties
               nobody noticed were gone. It took four months to get back. Now I
-              photograph the invoice at the back door and I know before the truck
+              photograph the order record at the back door and I know before the truck
               leaves.&rdquo;
             </blockquote>
             <div className={styles.spPerson}>

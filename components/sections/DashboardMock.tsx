@@ -4,7 +4,13 @@ import { Pill } from "@/components/Pill";
 import { StatRing } from "@/components/StatRing";
 import styles from "./DashboardMock.module.css";
 
-/** Static preview of the scorecard, shown inside the hero AppWindow. */
+/**
+ * Static preview of the scorecard, shown inside the hero AppWindow.
+ *
+ * The counts here have to stay consistent with the ring and the fix row, and
+ * with the real threshold: three categories at 7 varieties and dairy short by
+ * two is what "75% passing, 3 of 4" actually describes.
+ */
 export function DashboardMock() {
   return (
     <div className={styles.mock}>
@@ -41,16 +47,16 @@ export function DashboardMock() {
             <p className={styles.ringNote}>3 of 4 categories meet the threshold.</p>
           </div>
           <div className={styles.bars}>
-            <CategoryBar name="Dairy" count={4} index={0} />
-            <CategoryBar name="Grains" count={3} index={1} />
-            <CategoryBar name="Protein" count={3} index={2} />
-            <CategoryBar name="Produce" count={1} index={3} />
+            <CategoryBar name="Dairy" count={5} index={0} />
+            <CategoryBar name="Grains" count={7} index={1} />
+            <CategoryBar name="Protein" count={7} index={2} />
+            <CategoryBar name="Produce" count={7} index={3} />
           </div>
         </div>
 
         <div className={styles.fixRow}>
           <span className={styles.fixDot} aria-hidden="true" />
-          <span className={styles.fixText}>Add 2 produce varieties</span>
+          <span className={styles.fixText}>Add 2 dairy varieties</span>
           <span className={styles.fixMeta}>Blocks review</span>
         </div>
       </div>

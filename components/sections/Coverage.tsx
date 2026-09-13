@@ -13,7 +13,7 @@ interface CoverageProps {
 export function Coverage({ ground = "coal", intro }: CoverageProps) {
   const dark = ground === "coal";
   return (
-    <Section ground={ground}>
+    <Section ground={ground} id="coverage">
       <Reveal>
         <h2 className={`display ${styles.covHead}`}>
           Eighteen programmes, three levels of government.
