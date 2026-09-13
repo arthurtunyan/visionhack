@@ -35,7 +35,7 @@ export function Badge({
         style={{ width: size, height: size }}
         title={abbr}
       >
-        <ProgramIcon abbr={abbr} size={Math.round(size * 0.46)} />
+        <ProgramIcon abbr={abbr} size={Math.round(size * 0.56)} />
       </span>
       {showAbbr ? <span className={styles.abbr}>{abbr}</span> : null}
       {caption ? <span className={styles.caption}>{caption}</span> : null}
