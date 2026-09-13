@@ -38,7 +38,7 @@ function line(over = {}) {
 }
 
 // ---------------------------------------------------------------------------
-test("RULE 1 — butter and all jerky contribute zero", async (t) => {
+test("RULE 1 — non-peanut butter and all jerky contribute zero", async (t) => {
   await t.test("butter is detected even when the model forgets the flag", () => {
     const { items } = partitionClassifiedItems([
       line({ sourceLineText: "SWEET CREAM BUTTER", variety: "butter", accessory: false }),
@@ -64,6 +64,26 @@ test("RULE 1 — butter and all jerky contribute zero", async (t) => {
       line({ variety: "butter", sourceLineText: "BUTTER SALTED", packCount: 24, quantity: 1 }),
     ]);
     assert.equal(varietyCounts.dairy, 0);
+  });
+
+  await t.test("peanut butter is corrected to a countable protein", () => {
+    const { items, varietyCounts } = partitionClassifiedItems([
+      line({
+        sourceLineText: "CREAMY PEANUT BUTTER 18 OZ",
+        category: "dairy",
+        variety: "peanut butter",
+        packCount: 6,
+        quantity: 1,
+        storage: "shelf_stable",
+        accessory: true,
+      }),
+    ]);
+
+    assert.equal(items.length, 1);
+    assert.equal(items[0].category, "protein");
+    assert.equal(items[0].accessory, false);
+    assert.equal(items[0].stockingUnits, 6);
+    assert.deepEqual(varietyCounts, { dairy: 0, grains: 0, protein: 1, produce: 0 });
   });
 
   await t.test("a non-accessory line is untouched by the rule", () => {
@@ -123,17 +143,20 @@ test("RULE 2 — a variety needs at least 3 stocking units", async (t) => {
 });
 
 // ---------------------------------------------------------------------------
-test("RULE 3 — perishable means refrigerated or fresh", async (t) => {
-  await t.test("refrigerated and fresh are perishable", () => {
+test("RULE 3 — refrigerated, fresh, and frozen are perishable", async (t) => {
+  await t.test("refrigerated, fresh, and frozen are perishable", () => {
     assert.equal(rules.computePerishable("refrigerated"), true);
     assert.equal(rules.computePerishable("fresh"), true);
+    assert.equal(rules.computePerishable("frozen"), true);
   });
 
-  await t.test("shelf-stable and frozen are not", () => {
+  await t.test("shelf-stable is not perishable", () => {
     assert.equal(rules.computePerishable("shelf_stable"), false);
-    // ASSUMPTION, flagged for the team: "refrigerated or fresh" read literally
-    // excludes frozen.
-    assert.equal(rules.computePerishable("frozen"), false);
+  });
+
+  await t.test("partition derives the perishable flag from frozen storage", () => {
+    const { items } = partitionClassifiedItems([line({ category: "protein", storage: "frozen" })]);
+    assert.equal(items[0].perishable, true);
   });
 
   await t.test("the flag follows storage, not category", () => {

@@ -1,0 +1,65 @@
+name: Pages
+
+# Publishes site/ — the static fallback — to GitHub Pages. It has no build step
+# and no server, so this deploys even when the Next.js app or Vercel is broken.
+# That is the whole point of it: see site/README.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "brand/tools/build-static-site.py"
+      - "scripts/check-static-site.py"
+      - ".github/workflows/pages.yml"
+  # Verification runs on EVERY pull request, not only ones touching site/. The
+  # fallback asserts its thresholds against lib/rule-engine.ts, so a PR that
+  # changes a threshold and nothing else is exactly the one that must fail here.
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel a deploy that is already publishing; queue behind it instead.
+concurrency:
+  group: pages-${{ github.event_name == 'pull_request' && github.ref || 'main' }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The committed HTML must match what the generator produces, so nobody
+      # hand-edits site/*.html and has it silently overwritten next build.
+      - name: Generated HTML is up to date
+        run: |
+          python3 brand/tools/build-static-site.py
+          git diff --exit-code -- site/
+      - name: Assets resolve, nothing needs JS, thresholds match the rule engine
+        run: python3 scripts/check-static-site.py
+
+  deploy:
+    needs: verify
+    # A pull request verifies but never publishes.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

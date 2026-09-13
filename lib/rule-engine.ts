@@ -16,8 +16,11 @@ import type { CategoryStatus, ScanResult } from "./mock-data";
 import {
   CATEGORIES,
   MIN_STOCKING_UNITS_PER_VARIETY,
+  categoryForKnownFood,
+  computePerishable,
   floorVarietyCount,
   isAccessoryFood,
+  isPeanutButter,
   varietyQualifies,
   type Category,
 } from "./rules/constants";
@@ -69,7 +72,10 @@ function varietyKey(variety: string): string {
  */
 function countableUnits(item: ScanItem): number {
   // RULE 1 — accessory foods count for nothing.
-  if (item.accessory || isAccessoryFood(item.variety, item.description)) return 0;
+  const peanutButter = isPeanutButter(item.variety, item.description);
+  if (!peanutButter && (item.accessory || isAccessoryFood(item.variety, item.description))) {
+    return 0;
+  }
   // RULE 4 — round down, never up.
   return floorVarietyCount(item.stockingUnits);
 }
@@ -138,7 +144,8 @@ export function buildScanResult(
 ): ScanResult {
   const byCategory = new Map<Category, CountedItem[]>(CATEGORIES.map((c) => [c, []]));
   for (const item of items) {
-    const bucket = byCategory.get(item.category);
+    const category = categoryForKnownFood(item.category, item.variety, item.description);
+    const bucket = byCategory.get(category);
     const units = countableUnits(item);
     // A blank variety can't be told apart from other lines, so it never counts.
     if (!bucket || units === 0 || !varietyKey(item.variety)) continue;
@@ -146,7 +153,7 @@ export function buildScanResult(
       name: item.description,
       variety: item.variety.trim(),
       units,
-      perishable: item.perishable,
+      perishable: computePerishable(item.storage),
     });
   }
 

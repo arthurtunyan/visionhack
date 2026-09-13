@@ -78,9 +78,9 @@ interface ScanItem {
   quantity: number | null;
   packCount: number | null;
   stockingUnits: number;  // quantity × packCount, forced to 0 for accessories
-  accessory: boolean;     // butter / jerky — counts for nothing
+  accessory: boolean;     // non-peanut butter / jerky — counts for nothing
   storage: "fresh" | "refrigerated" | "frozen" | "shelf_stable";
-  perishable: boolean;    // refrigerated or fresh
+  perishable: boolean;    // refrigerated, fresh, or frozen
   confidence: number;     // 0..1, already filtered to >= 0.75
 }
 
@@ -104,15 +104,16 @@ interface ScanError {
 
 ### Scoring rules
 
-All four are quoted verbatim in
+All four are documented in
 [`lib/rules/constants.ts`](../lib/rules/constants.ts) next to the code that
 implements them, and are unit-tested with no API key (`npm test`).
 
-1. **Accessory foods.** Butter and all jerky count for nothing — 0 stocking
-   units, 0 toward any variety count. They are still returned, so they stay
-   visible in the UI.
+1. **Accessory foods.** Butter other than peanut butter, and all jerky, count
+   for nothing — 0 stocking units, 0 toward any variety count. Peanut butter
+   counts as protein. Accessories are still returned, so they stay visible in
+   the UI.
 2. **Minimum units.** A variety needs at least **3** stocking units to count.
-3. **Perishable** means refrigerated or fresh.
+3. **Perishable** means refrigerated, fresh, or frozen.
 4. **Variety counts round down.** `Math.floor`, never round-half-up.
 
 Each is enforced in code as well as in the pass-2 prompt, because the model
