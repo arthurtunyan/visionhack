@@ -15,7 +15,7 @@ export function ProgramStrip() {
       <Reveal delay={0.05}>
         <div className={styles.stripBadges}>
           {PROGRAM_STRIP.map((p) => (
-            <Badge key={p.abbr} abbr={p.abbr} caption={p.label} />
+            <Badge key={p.abbr} abbr={p.abbr} caption={p.label} showAbbr />
           ))}
         </div>
       </Reveal>

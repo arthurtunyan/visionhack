@@ -2,7 +2,7 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tile {
@@ -18,12 +18,24 @@
 
 .tile[data-tone="light"] {
   background: var(--tint);
-  color: var(--ink);
+  color: var(--blue);
   border: 1px solid var(--line);
 }
 
 .tile[data-tone="dark"] {
   background: var(--line-dark);
+  color: var(--blue-lift);
+}
+
+.abbr {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-align: center;
+}
+
+:global([data-ground="coal"]) .abbr {
   color: var(--paper);
 }
 
