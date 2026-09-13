@@ -284,6 +284,7 @@ export const PRICING: PricingPlan[] = [
 ];
 
 export const NAV_LINKS = [
+  { href: "/how-it-works", label: "How it works" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/coverage", label: "Coverage" },
   { href: "/industries/grocery-convenience", label: "Industries" },
@@ -295,6 +296,7 @@ export const FOOTER_COLUMNS = [
   {
     title: "Product",
     links: [
+      { href: "/how-it-works", label: "How it works" },
       { href: "/dashboard", label: "Dashboard" },
       { href: "/demo", label: "Live demo" },
       { href: "/dashboard", label: "Dashboard" },
