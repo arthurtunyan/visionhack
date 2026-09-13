@@ -111,6 +111,28 @@
   border-radius: 50%;
   background: var(--blue);
 }
+/* The hero scorecard links to the dashboard. Keep it visually identical to
+   the static version, with a focus ring for keyboard users. */
+.heroWindowLink {
+  display: block;
+  border-radius: var(--r-card);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.22s ease;
+}
+.heroWindowLink:hover {
+  transform: translateY(-2px);
+}
+.heroWindowLink:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroWindowLink:hover {
+    transform: none;
+  }
+}
+
 .heroWindow {
   width: min(1240px, 100%);
   margin: 0 auto;
@@ -238,38 +260,6 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
-}
-
-/* ---------- Undercount ---------- */
-.ucGrid {
-  display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 72px;
-  align-items: start;
-}
-.ucLeft p {
-  color: var(--mute);
-  margin: 18px 0 32px;
-  max-width: 460px;
-}
-.ucRule {
-  height: 1px;
-  background: var(--line);
-  margin-bottom: 28px;
-}
-.ucBigNum {
-  font-size: 56px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-.ucCaption {
-  font-size: 17px;
-  font-weight: 600;
-  margin: 10px 0 4px;
-}
-.ucSub {
-  color: var(--mute);
 }
 
 /* ---------- Coverage ---------- */
@@ -493,8 +483,7 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
-  .spGrid,
-  .ucGrid {
+  .spGrid {
     grid-template-columns: 1fr;
     gap: 40px;
   }

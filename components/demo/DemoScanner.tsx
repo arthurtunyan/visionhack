@@ -20,13 +20,30 @@ import styles from "./DemoScanner.module.css";
 
 type Status = "idle" | "scanning" | "done" | "error";
 
-export function DemoScanner() {
+interface DemoScannerProps {
+  /**
+   * Called with the English scorecard whenever one is produced, including the
+   * sample. The dashboard uses it to fold stocking into the readiness score;
+   * the marketing demo leaves it unset and stays self-contained.
+   */
+  onResult?: (result: ScanResult) => void;
+  /** Open on the upload pane rather than a pre-filled sample scorecard. */
+  startEmpty?: boolean;
+}
+
+export function DemoScanner({ onResult, startEmpty = false }: DemoScannerProps = {}) {
   const [locale, setLocale] = useState<Locale>("en");
-  const [status, setStatus] = useState<Status>("done");
-  const [result, setResult] = useState<ScanResult | null>(() =>
-    sampleScorecard("en"),
+  // The marketing demo opens on a filled scorecard so the page is never empty.
+  // Embedded in the dashboard it opens empty, because the reader just asked to
+  // scan something and a pre-filled result would read as their own.
+  const [status, setStatus] = useState<Status>(startEmpty ? "idle" : "done");
+  // Both languages come back on a single scan, so keep both and pick at render
+  // time. Storing only the active one is why switching language used to do
+  // nothing after a real scan.
+  const [scan, setScan] = useState<{ en: ScanResult; es: ScanResult } | null>(() =>
+    startEmpty ? null : { en: sampleScorecard("en"), es: sampleScorecard("es") },
   );
-  const [isSample, setIsSample] = useState(true);
+  const [isSample, setIsSample] = useState(!startEmpty);
   const [errorMsg, setErrorMsg] = useState("");
   const [storeName, setStoreName] = useState("");
   const [dragOver, setDragOver] = useState(false);
@@ -42,7 +59,7 @@ export function DemoScanner() {
       try {
         const prepared = await downscaleImage(file);
         const body = new FormData();
-        body.append("image", prepared, "invoice.jpg");
+        body.append("image", prepared, "order-record.jpg");
         if (storeName.trim()) body.append("storeName", storeName.trim());
 
         const res = await fetch("/api/scan", { method: "POST", body });
@@ -52,14 +69,15 @@ export function DemoScanner() {
           setStatus("error");
           return;
         }
-        setResult(locale === "es" ? data.scorecardEs : data.scorecard);
+        setScan({ en: data.scorecard, es: data.scorecardEs });
         setStatus("done");
+        onResult?.(data.scorecard);
       } catch {
         setErrorMsg(t.tryError);
         setStatus("error");
       }
     },
-    [locale, storeName, t.tryError],
+    [storeName, t.tryError, onResult],
   );
 
   const onFile = (files: FileList | null) => {
@@ -68,22 +86,24 @@ export function DemoScanner() {
   };
 
   const loadSample = () => {
-    setResult(sampleScorecard(locale));
+    const en = sampleScorecard("en");
+    setScan({ en, es: sampleScorecard("es") });
+    onResult?.(en);
     setIsSample(true);
     setStatus("done");
   };
 
   const reset = () => {
     setStatus("idle");
-    setResult(null);
+    setScan(null);
     setIsSample(false);
     setErrorMsg("");
   };
 
-  const switchLocale = (next: Locale) => {
-    setLocale(next);
-    if (isSample) setResult(sampleScorecard(next));
-  };
+  // Purely a display switch: no refetch, and nothing to re-derive.
+  const switchLocale = (next: Locale) => setLocale(next);
+
+  const result = scan ? (locale === "es" ? scan.es : scan.en) : null;
 
   return (
     <div className={styles.wrap}>

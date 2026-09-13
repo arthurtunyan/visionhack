@@ -47,7 +47,7 @@ export const INDUSTRIES: Industry[] = [
     badges: ["SNAP", "WIC", "EBT", "CHP", "TRL", "W&M"],
     headline: "The stocking rule is the one that closes you.",
     intro:
-      "A corner store answers to more programmes than a supermarket, with fewer staff to watch them. The stocking minimums behind SNAP and WIC are the ones that quietly fail between renewals, which is what the invoice scan is for.",
+      "A corner store answers to more programmes than a supermarket, with fewer staff to watch them. The stocking minimums behind SNAP and WIC are the ones that fail between renewals without anyone noticing, which is what the order-record scan is for.",
     risks: [
       {
         title: "Stocking minimums drift",
@@ -212,7 +212,7 @@ export interface FaqItem {
 export const FAQ: FaqItem[] = [
   {
     q: "I don't sell food. Is this for me?",
-    a: "Yes. Auto parts, liquor, pharmacy and hardware stores all carry permit stacks with different renewal dates and different inspectors. Only the invoice scan is specific to food. The permit tracking is not.",
+    a: "Yes. Auto parts, liquor, pharmacy and hardware stores all carry permit stacks with different renewal dates and different inspectors. Only the order-record scan is specific to food. The permit tracking is not.",
   },
   {
     q: "Are you affiliated with SNAP or the EPA?",
@@ -228,7 +228,7 @@ export const FAQ: FaqItem[] = [
   },
   {
     q: "Do I need to integrate my POS?",
-    a: "No. Ledger works from a photograph of the paper invoice and the permit details you enter once. Nothing to install at the register.",
+    a: "No. Ledger works from a photograph of the paper wholesale order record and the permit details you enter once. Nothing to install at the register.",
   },
 ];
 
@@ -249,7 +249,7 @@ export const PRICING: PricingPlan[] = [
     priceSuffix: "/month",
     for: "One location, one owner.",
     features: [
-      "Unlimited invoice scans",
+      "Unlimited order-record scans",
       "All 18 programmes tracked",
       "Renewal reminders",
       "7 years of scan history",
@@ -300,7 +300,7 @@ export const FOOTER_COLUMNS = [
       { href: "/dashboard", label: "Dashboard" },
       { href: "/demo", label: "Live demo" },
       { href: "/dashboard", label: "Dashboard" },
-  { href: "/coverage", label: "Coverage" },
+      { href: "/coverage", label: "Coverage" },
       { href: "/pricing", label: "Pricing" },
       { href: "/faq", label: "FAQ" },
     ],

@@ -3,15 +3,15 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { Section } from "@/components/Section";
 import { PageHeader } from "@/components/PageHeader";
-import { AppWindow } from "@/components/AppWindow";
-import { DashboardView } from "@/components/DashboardView";
+import { StoreDashboard } from "@/components/dashboard/StoreDashboard";
 import { CtaBand } from "@/components/sections/CtaBand";
 import { NON_AFFILIATION } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   title: "The dashboard",
   description:
-    "Every licence a store holds on one screen: renewal dates, what is due this week and the latest SNAP stocking review.",
+    "Every licence a store holds on one screen: renewal dates, what is due this week, " +
+    "and a wholesale order-record scan that feeds the SNAP stocking standard into the same score.",
 };
 
 export default function DashboardPage() {
@@ -22,17 +22,15 @@ export default function DashboardPage() {
         <PageHeader
           eyebrow="The dashboard"
           title="Eight licences on one screen."
-          intro="This is what a store owner sees after signing in: what is due, how long they have, and where the last invoice scan left them."
+          intro="What a store owner sees after signing in: what is due, how long they have, and where the last order-record scan left them. Everything here is live, so edit a date or run a scan and the score moves."
         />
         <Section ground="tint">
-          <AppWindow url="app.ledger.co/overview">
-            <DashboardView />
-          </AppWindow>
+          <StoreDashboard />
           <p
             className="small mute"
             style={{ maxWidth: 720, margin: "34px auto 0", textAlign: "center" }}
           >
-            Sample data for one store. {NON_AFFILIATION}
+            Your entries stay in this browser. {NON_AFFILIATION}
           </p>
         </Section>
         <CtaBand title="Put your licences on this screen." />
