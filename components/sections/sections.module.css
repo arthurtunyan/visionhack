@@ -76,13 +76,6 @@
   color: var(--mute);
   margin-bottom: 36px;
 }
-.heroStat {
-  font-family: var(--font-mono);
-  font-size: 15px;
-  letter-spacing: 0.04em;
-  color: var(--mute);
-  margin-bottom: 30px;
-}
 .heroButtons {
   display: flex;
   gap: 14px;
@@ -299,68 +292,6 @@
   line-height: 1.45;
 }
 
-/* ---------- Social proof ---------- */
-.spGrid {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 64px;
-  align-items: center;
-}
-.spQuote {
-  font-size: 36px;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.36;
-  text-wrap: balance;
-}
-.spPerson {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 36px;
-}
-.spAvatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--blue);
-  color: var(--paper);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
-  flex: none;
-}
-.spName {
-  font-weight: 600;
-}
-.spRole {
-  color: var(--mute);
-  font-size: 15px;
-}
-.spStat {
-  border-left: 1px solid var(--line);
-  padding-left: 48px;
-}
-.spStatNum {
-  font-size: 76px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-.spStatLabel {
-  color: var(--mute);
-  max-width: 320px;
-  margin-top: 12px;
-}
-.spRule {
-  height: 1px;
-  background: var(--line);
-  margin: 28px 0;
-  max-width: 320px;
-}
-
 /* ---------- Pricing ---------- */
 .priceGrid {
   display: grid;
@@ -483,16 +414,6 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
-  .spGrid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-  .spStat {
-    border-left: none;
-    padding-left: 0;
-    border-top: 1px solid var(--line);
-    padding-top: 36px;
-  }
   .covCols {
     grid-template-columns: 1fr;
     gap: 40px;
@@ -535,12 +456,6 @@
   .faqRow {
     grid-template-columns: 1fr;
     gap: 12px;
-  }
-  .spQuote {
-    font-size: 27px;
-  }
-  .spStatNum {
-    font-size: 60px;
   }
   .heroTrust {
     gap: 16px 28px;

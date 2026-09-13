@@ -84,7 +84,162 @@
   margin: 0 0 12px;
 }
 
-/* Second line inside a table cell: the penalty, or the relative date. */
+/* ---------- expandable obligation rows ---------- */
+.rows {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  border-bottom: 1px solid var(--line);
+}
+.row[data-open="true"] {
+  background: var(--wash);
+}
+
+.rowHead {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 130px 54px 112px;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 13px 12px;
+  background: none;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+.rowHead:hover {
+  background: var(--wash);
+}
+.rowHead:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
+/* Chevron, rotated when the row is open. */
+.rowCaret {
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--mute);
+  border-bottom: 1.5px solid var(--mute);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+  margin-left: 4px;
+}
+.row[data-open="true"] .rowCaret {
+  transform: rotate(45deg);
+}
+
+.rowMain {
+  display: block;
+  min-width: 0;
+}
+.rowName {
+  display: block;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.rowDue {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.rowCheck {
+  font-size: 13px;
+  color: var(--mute);
+  text-align: right;
+}
+
+.panel {
+  padding: 4px 12px 22px 42px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.panelGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 26px;
+}
+.panelHead {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 10px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 12px;
+}
+.fieldLabel {
+  display: block;
+  font-size: 12.5px;
+  color: var(--mute);
+  margin-bottom: 4px;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  background: var(--paper);
+  color: var(--ink);
+}
+.field textarea {
+  min-height: 68px;
+  resize: vertical;
+}
+.field input:focus,
+.field textarea:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: -1px;
+}
+
+.penalty {
+  font-size: 13px;
+  color: var(--mute);
+  border-left: 2px solid var(--warn);
+  padding-left: 10px;
+  margin: 14px 0 0;
+}
+
+.check {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 5px 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+.check input {
+  margin: 3px 0 0;
+  flex: none;
+  accent-color: var(--blue);
+}
+
+.panelFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.panelFoot p {
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* Second line inside a row: the agency, the penalty, or the relative date. */
 .sub {
   display: block;
   font-size: 12.5px;
@@ -104,6 +259,22 @@
 }
 
 @media (max-width: 860px) {
+  .rowHead {
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    row-gap: 6px;
+  }
+  .rowDue,
+  .rowCheck {
+    grid-column: 2 / -1;
+    text-align: left;
+  }
+  .panel {
+    padding-left: 12px;
+  }
+  .panelGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
   .topGrid {
     grid-template-columns: minmax(0, 1fr);
   }

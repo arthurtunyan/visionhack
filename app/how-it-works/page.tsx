@@ -74,7 +74,7 @@ const CADENCE: {
 const AFTER = [
   {
     title: "You get a ranked fix list",
-    body: "Not a list of everything wrong. The item that can close the store comes first, then the rest in the order they bite. Each line names a specific product, a pack size and how many to stock.",
+    body: "The item that can close the store comes first, then the rest in the order they bite. Each line names a specific product, a pack size and how many to stock.",
   },
   {
     title: "You buy the items on your next order",
@@ -113,7 +113,7 @@ export default function HowItWorksPage() {
         <PageHeader
           eyebrow="How it works"
           title="What we do, what you do, and when."
-          intro="Compliance is not one event. It is a renewal calendar, a stocking position that moves with every delivery, and a set of conditions that keep applying. Here is how the work splits between us."
+          intro="Compliance is a calendar. Renewal dates, a stocking position that moves with every delivery, and conditions that keep applying after the licence is granted. Here is how the work splits between us."
         />
 
         <Section ground="tint">
@@ -123,9 +123,9 @@ export default function HowItWorksPage() {
             </Reveal>
             <Reveal delay={0.05}>
               <p className="body-l" style={{ color: "var(--mute)" }}>
-                Eighteen programmes across three levels of government. A grocery
-                store typically holds eight of them, an auto parts store six, a
-                pharmacy five.
+                Eighteen programmes across three levels of government. You tell
+                Ledger which ones you hold; it tracks those and leaves the rest
+                alone.
               </p>
             </Reveal>
           </div>
@@ -159,8 +159,8 @@ export default function HowItWorksPage() {
             </Reveal>
             <Reveal delay={0.05}>
               <p className="body-l" style={{ color: "var(--mute)" }}>
-                Three of these are yours. Two of the three take under a minute.
-                The rest is ours and runs whether or not you open the app.
+                Three of these are yours. The rest is ours and runs whether or
+                not you open the app.
               </p>
             </Reveal>
           </div>
@@ -200,9 +200,9 @@ export default function HowItWorksPage() {
             </Reveal>
             <Reveal delay={0.05}>
               <p className="body-l" style={{ color: "var(--mute)" }}>
-                A scorecard that tells you that you failed is worth nothing on its
-                own. The report is the start of a four-step loop that ends with
-                the category clearing.
+                A scorecard that tells you that you failed is worth nothing on
+                its own. The report starts a four-step loop that ends with the
+                category clearing.
               </p>
             </Reveal>
           </div>
@@ -238,7 +238,7 @@ export default function HowItWorksPage() {
               <div>
                 <h3 className={styles.colTitle}>Yours to do</h3>
                 <p className={styles.colNote}>
-                  Five things, and we remind you about all of them.
+                  Five things. Ledger flags the dates; the doing is yours.
                 </p>
                 <ul className={styles.plainList}>
                   {YOURS.map((item) => (

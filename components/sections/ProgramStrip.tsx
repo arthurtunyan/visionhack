@@ -46,14 +46,10 @@ export function ProgramStrip() {
         <div className={styles.stripTally}>
           <p className={styles.stripTallyText}>
             {held.length === 0
-              ? "Pick one and we will show you what it costs to let it lapse."
+              ? "Tick one to see what Ledger would be tracking for you."
               : `${held.length} selected. That is ${held.length} renewal date${
                   held.length === 1 ? "" : "s"
-                } to remember, ${held.length} set${
-                  held.length === 1 ? "" : "s"
-                } of conditions and ${held.length} inspector${
-                  held.length === 1 ? "" : "s"
-                } to keep happy.`}
+                }, each with its own agency and its own conditions.`}
           </p>
           <Button href="/demo">Put these on one calendar</Button>
         </div>

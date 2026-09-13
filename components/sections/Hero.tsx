@@ -4,13 +4,12 @@ import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { AppWindow } from "@/components/AppWindow";
 import { Button } from "@/components/Button";
-import { CountUp } from "@/components/CountUp";
 import { DashboardMock } from "./DashboardMock";
 import styles from "./sections.module.css";
 
 const EASE = [0.22, 0.68, 0.28, 1] as const;
 const TRUST = [
-  "Eight licenses, one dashboard",
+  "Every license on one dashboard",
   "Set up in ten minutes",
   "English and Spanish",
 ];
@@ -45,13 +44,9 @@ export function Hero() {
         <motion.p className={`body-l ${styles.heroBody}`} {...rise(0.1)}>
           SNAP, WIC, county health, food handler, tobacco, ABC, scales, business
           tax. Enter each license once. Ledger watches the renewal dates, tells you
-          what is about to expire, and checks your stocking against the USDA rule
-          that hits November 4.
+          what is about to expire, and checks your shelves against the new USDA
+          staple stocking rule.
         </motion.p>
-
-        <motion.div className={styles.heroStat} {...rise(0.12)}>
-          <CountUp to={117000} />
-        </motion.div>
 
         <motion.div className={styles.heroButtons} {...rise(0.15)}>
           <Button href="/demo" size="lg">

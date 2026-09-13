@@ -34,8 +34,8 @@ export function WhatWeDo() {
         </Reveal>
         <Reveal delay={0.05}>
           <h2 className="display">
-            Your store needs eight licences to stay open. Ledger keeps all of them
-            from lapsing.
+            A small store runs on a stack of licences. Ledger keeps them from
+            lapsing.
           </h2>
         </Reveal>
       </div>

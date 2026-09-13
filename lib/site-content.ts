@@ -118,7 +118,7 @@ export const INDUSTRIES: Industry[] = [
     badges: ["BOP", "FDA", "CHP", "OSHA"],
     headline: "A missed temperature log is a finding.",
     intro:
-      "Pharmacies carry the tightest record-keeping of any small retailer: board registration, controlled-substance logs and temperature records that have to be complete rather than mostly complete. Ledger tracks the filings around them so the pharmacist can stay at the counter.",
+      "Pharmacies carry heavy record-keeping: board registration, controlled-substance logs and temperature records that have to be complete rather than mostly complete. Ledger tracks the filings around them so the pharmacist can stay at the counter.",
     risks: [
       {
         title: "Board of pharmacy",
@@ -217,6 +217,14 @@ export const FAQ: FaqItem[] = [
   {
     q: "Are you affiliated with SNAP or the EPA?",
     a: "No. Ledger tracks published programme requirements so you can see where you stand. It is not affiliated with, endorsed by, or acting for any agency, and no authorization decision is ever ours.",
+  },
+  {
+    q: "Does the new USDA stocking rule hit me on 4 November 2026?",
+    a: "Only if you are applying for the first time. The final rule (Federal Register 2026-09137, published 8 May 2026) sets 4 November 2026 as the compliance date for new applicants. An already authorized retailer is assessed against it at the next reauthorization, which runs on roughly a five-year cycle. Ledger shows you your own date, not a countdown to someone else's.",
+  },
+  {
+    q: "What does the rule actually ask for?",
+    a: "Seven varieties in each of the four staple categories, three stocking units per variety, so 84 units in total, with a perishable variety in at least three of the four categories. Butter and jerky are accessory foods and count for nothing, and so does anything multi-ingredient. Stock on order counts if it arrives inside a 21 day window.",
   },
   {
     q: "What if the photo is blurry?",
