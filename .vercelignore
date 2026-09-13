@@ -7,3 +7,4 @@ docs/
 fixtures/
 *.md
 !README.md
+devpost-screenshots/
