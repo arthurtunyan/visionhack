@@ -4,7 +4,6 @@ import { Hero } from "@/components/sections/Hero";
 import { ProgramStrip } from "@/components/sections/ProgramStrip";
 import { Industries } from "@/components/sections/Industries";
 import { HowItWorks } from "@/components/sections/HowItWorks";
-import { Undercount } from "@/components/sections/Undercount";
 import { Coverage } from "@/components/sections/Coverage";
 import { SocialProof } from "@/components/sections/SocialProof";
 import { Pricing } from "@/components/sections/Pricing";
@@ -20,7 +19,6 @@ export default function HomePage() {
         <ProgramStrip />
         <Industries />
         <HowItWorks />
-        <Undercount />
         <Coverage ground="coal" />
         <SocialProof />
         <Pricing />
