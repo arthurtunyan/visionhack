@@ -7,7 +7,7 @@ import { Button } from "@/components/Button";
 import { Pill } from "@/components/Pill";
 import { CategoryBar } from "@/components/CategoryBar";
 import { downscaleImage } from "@/lib/downscale";
-import { sampleScorecard, SAMPLE_HELD_BACK } from "@/lib/sample-data";
+import { sampleScorecard } from "@/lib/sample-data";
 import {
   UI_COPY,
   REQUIRED_VARIETIES,
@@ -236,7 +236,6 @@ function Scorecard({
     (c) => c.varietiesFound < REQUIRED_VARIETIES || c.unitsFound < REQUIRED_UNITS,
   );
   const passing = result.categories.length - short.length;
-  const percent = (passing / result.categories.length) * 100;
   const dateFmt = new Intl.DateTimeFormat(es ? "es" : "en", {
     year: "numeric",
     month: "short",
@@ -274,10 +273,6 @@ function Scorecard({
     {
       value: `${result.perishableCategoriesMet}/4`,
       label: es ? "con un perecedero" : "with a perishable",
-    },
-    {
-      value: String(SAMPLE_HELD_BACK.length),
-      label: es ? "líneas retenidas" : "lines held back",
     },
   ];
 
@@ -363,37 +358,6 @@ function Scorecard({
           );
         })}
       </div>
-
-      {isSample ? (
-        <div className={styles.heldBack}>
-          <h3 className={styles.blockTitle}>
-            {es ? "Líneas que no contamos" : "Lines we did not count"}
-          </h3>
-          <p className={styles.blockIntro}>
-            {es
-              ? "Cada línea que el escaneo no pudo contar con certeza aparece aquí con el motivo. Ninguna se adivina."
-              : "Every line the scan could not count with certainty is listed here with the reason. None of them are guessed at."}
-          </p>
-          <table className={styles.hbTable}>
-            <thead>
-              <tr>
-                <th>{es ? "Línea" : "Line"}</th>
-                <th>{es ? "Presentación" : "Pack"}</th>
-                <th>{es ? "Motivo" : "Reason"}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SAMPLE_HELD_BACK.map((row) => (
-                <tr key={row.line}>
-                  <td className={styles.hbLine}>{row.line}</td>
-                  <td className={styles.hbPack}>{row.pack}</td>
-                  <td className={styles.hbReason}>{es ? row.reasonEs : row.reason}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
 
       <div className={styles.fixes}>
         <h3 className={styles.blockTitle}>{t.fixesTitle}</h3>
