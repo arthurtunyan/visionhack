@@ -33,7 +33,7 @@ export function Hero() {
 
       <div className={styles.heroInner}>
         <motion.span className={styles.heroPill} {...rise(0)}>
-          <span>ledger · the ai compliance layer for small stores</span>
+          <span>ai compliance layer for small stores</span>
         </motion.span>
 
         <motion.h1 className={`display-xl ${styles.heroTitle}`} {...rise(0.05)}>
